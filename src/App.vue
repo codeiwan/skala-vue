@@ -24,6 +24,16 @@
 // import ModelModifier from './components/practices/basic/ModelModifier.vue'
 // import StyleScoped from './components/practices/basic/StyleScoped.vue'
 
+// import ReactiveRef from './components/practices/composition/ReactiveRef.vue'
+// import ReactiveReactive from './components/practices/composition/ReactiveReactive.vue'
+
+// import ComputedBasic from './components/practices/composition/ComputedBasic.vue'
+// import WhatchersBasic from './components/practices/composition/WatchersBasic.vue'
+// import WhatcherMulti from './components/practices/composition/WatchersMulti.vue'
+// import WatcherDeep from './components/practices/composition/WatchersDeep.vue'
+// import WatcherReactive from './components/practices/composition/WatchersReactive.vue'
+// import WatcherWatchEffect from './components/practices/composition/WatchersWatchEffect.vue'
+
 import WeatherMockup from './components/exercise/WeatherMockup.vue'
 </script>
 
@@ -52,10 +62,21 @@ import WeatherMockup from './components/exercise/WeatherMockup.vue'
     <ModerForm />
     <ModelModifier />
     <StyleScoped /> -->
+
+    <!-- <ReactiveRef />
+    <ReactiveReactive />
+
+    <ComputedBasic />
+    <WhatchersBasic />
+    <WhatcherMulti />
+    <WatcherDeep />
+    <WatcherReactive />
+    <WatcherWatchEffect /> -->
+
     <WeatherMockup />
   </div>
 </template>
 
-<style scoped>
+<style>
 @import '@/assets/practice.css';
 </style>
