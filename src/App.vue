@@ -1,32 +1,35 @@
 <script setup>
-import SampleOne from './components/practices/basic/SampleOne.vue'
-import SampleTwo from './components/practices/basic/SampleTwo.vue'
+// challenge code
+// import SampleOne from './components/practices/basic/SampleOne.vue'
+// import SampleTwo from './components/practices/basic/SampleTwo.vue'
 
-import VueHtml from './components/practices/basic/VueHtml.vue'
-import VueHtmlXss from './components/practices/basic/VueHtmlXss.vue'
-import VueText from './components/practices/basic/VueText.vue'
-import VueBind from './components/practices/basic/VueBind.vue'
-import VueBindClass from './components/practices/basic/VueBindClass.vue'
-import VueBindStyle from './components/practices/basic/VueBindStyle.vue'
-import VueBindShorthand from './components/practices/basic/VueBindShorthand.vue'
+// import VueHtml from './components/practices/basic/VueHtml.vue'
+// import VueHtmlXss from './components/practices/basic/VueHtmlXss.vue'
+// import VueText from './components/practices/basic/VueText.vue'
+// import VueBind from './components/practices/basic/VueBind.vue'
+// import VueBindClass from './components/practices/basic/VueBindClass.vue'
+// import VueBindStyle from './components/practices/basic/VueBindStyle.vue'
+// import VueBindShorthand from './components/practices/basic/VueBindShorthand.vue'
 
-import VueIf from './components/practices/basic/VueIf.vue'
-import VueShow from './components/practices/basic/VueShow.vue'
-import VueFor from './components/practices/basic/VueFor.vue'
+// import VueIf from './components/practices/basic/VueIf.vue'
+// import VueShow from './components/practices/basic/VueShow.vue'
+// import VueFor from './components/practices/basic/VueFor.vue'
 
-import EventBasic from './components/practices/basic/EventBasic.vue'
-import EventObject from './components/practices/basic/EventObject.vue'
-import EventModifier from './components/practices/basic/EventModifier.vue'
+// import EventBasic from './components/practices/basic/EventBasic.vue'
+// import EventObject from './components/practices/basic/EventObject.vue'
+// import EventModifier from './components/practices/basic/EventModifier.vue'
 
-import ModelBasic from './components/practices/basic/ModelBasic.vue'
-import ModerForm from './components/practices/basic/ModelForm.vue'
-import ModelModifier from './components/practices/basic/ModelModifier.vue'
-import StyleScoped from './components/practices/basic/StyleScoped.vue'
+// import ModelBasic from './components/practices/basic/ModelBasic.vue'
+// import ModerForm from './components/practices/basic/ModelForm.vue'
+// import ModelModifier from './components/practices/basic/ModelModifier.vue'
+// import StyleScoped from './components/practices/basic/StyleScoped.vue'
+
+import WeatherMockup from './components/exercise/WeatherMockup.vue'
 </script>
 
 <template>
   <div style="padding: 20px">
-    <SampleOne />
+    <!-- <SampleOne />
     <SampleTwo />
 
     <VueHtml />
@@ -48,7 +51,8 @@ import StyleScoped from './components/practices/basic/StyleScoped.vue'
     <ModelBasic />
     <ModerForm />
     <ModelModifier />
-    <StyleScoped />
+    <StyleScoped /> -->
+    <WeatherMockup />
   </div>
 </template>
 
