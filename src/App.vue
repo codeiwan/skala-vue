@@ -1,4 +1,7 @@
 <script setup>
+// import WeatherMockup from './components/exercise/WeatherMockup.vue'
+import WeatherParent from './components/exercise/WeatherParent.vue'
+
 // import SampleOne from './components/practices/basic/SampleOne.vue'
 // import SampleTwo from './components/practices/basic/SampleTwo.vue'
 
@@ -33,11 +36,20 @@
 // import WatcherReactive from './components/practices/composition/WatchersReactive.vue'
 // import WatcherWatchEffect from './components/practices/composition/WatchersWatchEffect.vue'
 
-import WeatherMockup from './components/exercise/WeatherMockup.vue'
+// import LifecycleParent from './components/practices/component/LifecycleParent.vue'
+
+// import PropsEmitsParent from './components/practices/component/PropsEmitsParent.vue'
+
+// import SlotDefaultParent from './components/practices/component/SlotDefaultParent.vue'
+// import SlotNamedParent from './components/practices/component/SlotNamedParent.vue'
+// import SlotScopedParent from './components/practices/component/SlotScopedParent.vue'
 </script>
 
 <template>
   <div style="padding: 20px">
+    <!-- <WeatherMockup /> -->
+    <WeatherParent />
+
     <!-- <SampleOne />
     <SampleTwo />
 
@@ -60,9 +72,9 @@ import WeatherMockup from './components/exercise/WeatherMockup.vue'
     <ModelBasic />
     <ModerForm />
     <ModelModifier />
-    <StyleScoped /> -->
+    <StyleScoped />
 
-    <!-- <ReactiveRef />
+    <ReactiveRef />
     <ReactiveReactive />
 
     <ComputedBasic />
@@ -72,7 +84,13 @@ import WeatherMockup from './components/exercise/WeatherMockup.vue'
     <WatcherReactive />
     <WatcherWatchEffect /> -->
 
-    <WeatherMockup />
+    <!-- <LifecycleParent /> -->
+
+    <!-- <PropsEmitsParent /> -->
+
+    <!-- <SlotDefaultParent />
+    <SlotNamedParent />
+    <SlotScopedParent /> -->
   </div>
 </template>
 
