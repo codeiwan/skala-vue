@@ -5,11 +5,21 @@
   color: #1f2937;
 }
 
+/*
+  전체 Weather Dashboard의 최대 너비.
+
+  width: 100%이므로 부모 영역 안에서는 가능한 너비를 모두 사용하고,
+  화면이 충분히 넓더라도 1400px 이상으로는 확장하지 않는다.
+*/
 .weather-dashboard {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto;
 }
+
+/* ================================
+   Header
+   ================================ */
 
 .dashboard-header {
   margin-bottom: 32px;
@@ -17,70 +27,178 @@
 
 .eyebrow {
   margin: 0 0 8px;
+
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 2px;
+
   color: #2563eb;
 }
 
 .dashboard-header h1 {
   margin: 0;
+
   font-size: 36px;
 }
 
 .description {
   margin-top: 10px;
+
   color: #6b7280;
 }
+
+/* ================================
+   Search
+   ================================ */
 
 .search-section {
   padding: 24px;
   margin-bottom: 20px;
+
   background-color: #ffffff;
+
   border: 1px solid #e5e7eb;
   border-radius: 16px;
 }
 
 .search-section label {
   display: block;
+
   margin-bottom: 10px;
+
   font-weight: 700;
 }
 
 .search-section input {
   width: 100%;
+
   box-sizing: border-box;
+
   padding: 12px 14px;
+
   border: 1px solid #d1d5db;
   border-radius: 8px;
+
   font-size: 16px;
 }
 
 .search-result {
   margin: 12px 0 0;
+
   color: #4b5563;
 }
+
+/* ================================
+   Activity Score Buttons
+   ================================ */
+
+.score-buttons {
+  display: flex;
+
+  gap: 8px;
+
+  margin-top: 16px;
+}
+
+.score-button {
+  padding: 9px 16px;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+
+  background-color: #eff6ff;
+  color: #1d4ed8;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.score-button:hover {
+  background-color: #dbeafe;
+}
+
+/* ================================
+   Selected Status
+   ================================ */
 
 .status-bar {
   padding: 14px 18px;
   margin-bottom: 24px;
+
   background-color: #e8f0ff;
+
   border-radius: 10px;
+
   color: #1d4ed8;
   font-weight: 700;
 }
 
+/* ================================
+   Weather Grid
+
+   auto-fit + minmax()를 이용하여
+   현재 존재하는 카드 개수와 실제 사용할 수 있는 화면 너비에 따라
+   열 개수를 자동으로 결정한다.
+
+   카드 한 장의 최소 너비는 360px이다.
+
+   weather-dashboard의 최대 너비가 1400px이므로
+   충분히 넓은 데스크톱 화면에서도 최대 3열까지만 배치된다.
+
+   예상 동작:
+   - 검색 결과 1개
+     → 카드 1개가 사용 가능한 전체 너비를 차지
+
+   - 검색 결과 2개
+     → 카드 2개가 남는 공간을 절반씩 나누어 사용
+
+   - 검색 결과 3개 이상
+     → 최대 3열로 배치
+
+   - 카드가 4개 이상
+     → 다음 행으로 자동 줄바꿈
+
+   - 화면이 좁아질 경우
+     → 3열 → 2열 → 1열로 자동 감소
+
+   repeat(3, 1fr)처럼 열 개수를 고정하지 않기 때문에
+   검색 결과가 1~2개일 때 빈 그리드 칸이 남지 않는다.
+   ================================ */
+
 .weather-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
+
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+
+  gap: 20px;
+
+  align-items: stretch;
 }
 
+/* ================================
+   Weather Card
+   ================================ */
+
 .weather-card {
+  display: flex;
+  flex-direction: column;
+
+  /*
+    Grid/Flex 내부의 긴 텍스트가
+    카드 자체의 최소 너비를 강제로 늘리는 것을 방지한다.
+  */
+  min-width: 0;
+
   padding: 22px;
+
+  box-sizing: border-box;
+
   background-color: #ffffff;
+
   border: 1px solid #e5e7eb;
   border-radius: 16px;
+
   cursor: pointer;
 }
 
@@ -88,40 +206,75 @@
   border-color: #93c5fd;
 }
 
+/* ================================
+   Card Header
+   ================================ */
+
 .card-header {
   display: flex;
+
   align-items: flex-start;
   justify-content: space-between;
+
+  gap: 12px;
 }
 
 .card-header h2 {
   margin: 3px 0 0;
+
   font-size: 24px;
 }
 
 .region {
   margin: 0;
+
   font-size: 13px;
+
   color: #6b7280;
 }
 
 .weather-status {
+  /*
+    도시명이 길어지더라도
+    날씨 상태 Badge가 지나치게 압축되지 않도록 한다.
+  */
+  flex-shrink: 0;
+
   padding: 6px 10px;
+
   background-color: #f3f4f6;
+
   border-radius: 999px;
+
   font-size: 13px;
 }
 
+/* ================================
+   Temperature
+   ================================ */
+
+.temperature-section {
+  margin-top: 26px;
+}
+
 .temperature {
-  margin: 28px 0 8px;
+  margin: 0 0 12px;
+
   font-size: 42px;
   font-weight: 700;
 }
 
 .temperature-label {
-  margin: 0 0 20px;
+  margin: 0;
+
   font-size: 14px;
   font-weight: 700;
+
+  /*
+    "🔥 더움 (25도 이상)" 등의 짧은 상태 문구는
+    한 줄로 유지한다.
+  */
+  white-space: nowrap;
 }
 
 .hot {
@@ -132,34 +285,262 @@
   color: #2563eb;
 }
 
-.extra-weather-info {
-  padding: 14px 0;
+/* ================================
+   Basic Weather Information
+   ================================ */
+
+.basic-weather-info {
+  padding: 16px 0;
+  margin-top: 22px;
+
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
 }
 
+/* ================================
+   Common Information Row
+   ================================ */
+
 .info-item {
-  display: flex;
-  justify-content: space-between;
-  margin: 6px 0;
+  display: grid;
+
+  /*
+    왼쪽 라벨 영역은 86px로 고정하고,
+    실제 값은 남은 가로 공간을 모두 사용한다.
+
+    minmax(0, 1fr)은 긴 텍스트 때문에
+    Grid 열이 의도 이상으로 확장되는 것을 방지한다.
+  */
+  grid-template-columns: 86px minmax(0, 1fr);
+
+  gap: 10px;
+
+  align-items: start;
+
+  margin: 7px 0;
 }
 
 .info-item span {
   color: #6b7280;
+
+  white-space: nowrap;
 }
+
+.info-item strong {
+  min-width: 0;
+
+  text-align: right;
+
+  line-height: 1.4;
+
+  /*
+    한국어 문장이 글자 단위로 부자연스럽게
+    잘리는 현상을 줄인다.
+  */
+  word-break: keep-all;
+}
+
+/* ================================
+   Activity Insight
+   ================================ */
+
+.activity-info {
+  padding-top: 16px;
+}
+
+.activity-summary {
+  padding-bottom: 14px;
+}
+
+/*
+  Recommendation / Caution Panel
+
+  추천과 주의는 일반적인 한 줄 정보보다
+  문장 길이가 길어질 가능성이 있기 때문에
+  별도의 Panel 안에서 표시한다.
+
+  고정 높이를 주지 않고 실제 콘텐츠 길이에 따라
+  자연스럽게 높이가 결정되도록 한다.
+*/
+.insight-panel {
+  padding: 13px 14px;
+
+  background-color: #f8fafc;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.insight-row {
+  display: grid;
+
+  /*
+    "추천", "주의"처럼 짧은 라벨에는 42px만 사용하고
+    오른쪽 설명 영역에 최대한 많은 가로 공간을 배정한다.
+  */
+  grid-template-columns: 42px minmax(0, 1fr);
+
+  gap: 10px;
+
+  align-items: start;
+}
+
+/*
+  두 번째 Insight 행부터만
+  위쪽 구분선을 추가한다.
+*/
+.insight-row + .insight-row {
+  margin-top: 10px;
+  padding-top: 10px;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+.insight-label {
+  color: #6b7280;
+
+  white-space: nowrap;
+}
+
+.insight-value {
+  min-width: 0;
+
+  text-align: left;
+
+  line-height: 1.4;
+
+  /*
+    카드 폭이 충분하면 한 줄로 표시되고,
+    공간이 부족할 경우 어절 단위로 자연스럽게 개행된다.
+  */
+  word-break: keep-all;
+}
+
+/* ================================
+   Recommendation Result
+   ================================ */
+
+.recommendation-result {
+  margin-top: 14px;
+}
+
+.recommendation-message {
+  margin: 0;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  /*
+    추천 여부 문구는 길이가 짧으므로
+    한 줄 상태 표시로 유지한다.
+  */
+  white-space: nowrap;
+}
+
+.recommended {
+  color: #2563eb;
+}
+
+.not-recommended {
+  color: #dc2626;
+}
+
+/* ================================
+   Detail Button
+   ================================ */
 
 .detail-button {
   width: 100%;
-  margin-top: 18px;
+
+  /*
+    weather-card가 flex-direction: column이므로
+    margin-top: auto를 사용하면 카드별 내용 길이에 차이가 있어도
+    버튼이 가능한 한 카드 하단에 배치된다.
+
+    카드 중간에 고정 높이로 빈 공간을 만드는 방식보다
+    자연스럽게 남은 공간만 흡수한다.
+  */
+  margin-top: auto;
+
   padding: 11px 14px;
+
   border: none;
   border-radius: 8px;
+
   background-color: #2563eb;
   color: #ffffff;
+
   font-weight: 700;
+
   cursor: pointer;
+}
+
+/*
+  추천 결과와 상세보기 버튼 사이에는
+  최소한의 시각적 여백을 확보한다.
+*/
+.recommendation-result + .detail-button {
+  margin-top: 20px;
 }
 
 .detail-button:hover {
   background-color: #1d4ed8;
+}
+
+/* ================================
+   Empty Search Result
+   ================================ */
+
+.empty-result {
+  padding: 48px 24px;
+
+  background-color: #ffffff;
+
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+
+  text-align: center;
+}
+
+.empty-title {
+  margin: 0;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  color: #1f2937;
+}
+
+.empty-description {
+  margin: 10px 0 0;
+
+  color: #6b7280;
+}
+
+/* ================================
+   Responsive
+
+   기본 Weather Grid의 열 개수는
+   별도의 3열/2열 Media Query로 강제하지 않는다.
+
+   auto-fit + minmax(360px, 1fr)이
+   화면 폭에 따라 3열 → 2열 → 1열을 자동 처리한다.
+
+   다만 매우 작은 모바일 화면에서는
+   360px 최소 너비가 화면을 넘을 수 있으므로
+   카드 최소 너비를 240px로 낮춘다.
+   ================================ */
+
+@media (max-width: 560px) {
+  .weather-page {
+    padding: 32px 16px;
+  }
+
+  .weather-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .dashboard-header h1 {
+    font-size: 30px;
+  }
 }
