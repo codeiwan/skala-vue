@@ -1,13 +1,22 @@
 <script setup>
-import { computed } from 'vue'
-
-import { weatherList } from '@/data/weatherData'
+import { computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useConfigStore } from '@/stores/configStore'
+import { useWeatherStore } from '@/stores/weatherStore'
 
 const configStore = useConfigStore()
-
+const weatherStore = useWeatherStore()
+const { weatherList, liveCityCount } = storeToRefs(weatherStore)
 const recommendedCities = computed(() => {
-  return weatherList.filter((city) => city.activityScore >= configStore.activityScoreThreshold)
+  return weatherList.value.filter(
+    (city) => city.activityScore >= configStore.activityScoreThreshold,
+  )
+})
+
+onMounted(async () => {
+  if (liveCityCount.value === 0) {
+    await weatherStore.fetchAllWeather()
+  }
 })
 </script>
 
@@ -20,7 +29,7 @@ const recommendedCities = computed(() => {
         <h1>오늘 어디서 활동할까?</h1>
 
         <p class="description">
-          Weather Signal의 활동 적합도를 기준으로 야외 활동에 적합한 도시를 확인합니다.
+          OpenWeatherMap의 현재 날씨를 기반으로 계산된 활동 적합도를 활용합니다.
         </p>
       </header>
 
@@ -61,8 +70,6 @@ const recommendedCities = computed(() => {
             80점
           </button>
         </div>
-
-        <p class="global-hint">이 기준은 날씨 대시보드와 상세 페이지에도 동일하게 적용됩니다.</p>
       </section>
 
       <p class="result-summary">
@@ -72,13 +79,21 @@ const recommendedCities = computed(() => {
 
       <section class="city-grid">
         <article v-for="city in recommendedCities" :key="city.id" class="guide-card">
-          <p class="region">
-            {{ city.region }}
-          </p>
+          <div class="city-heading">
+            <div>
+              <p class="region">
+                {{ city.region }}
+              </p>
 
-          <h2>
-            {{ city.name }}
-          </h2>
+              <h2>
+                {{ city.name }}
+              </h2>
+            </div>
+
+            <span :class="['source', city.source]">
+              {{ city.source === 'live' ? 'LIVE' : 'MOCK' }}
+            </span>
+          </div>
 
           <p class="score">{{ city.activityScore }}점</p>
 
@@ -98,26 +113,20 @@ const recommendedCities = computed(() => {
 <style scoped>
 .guide-page {
   min-height: 100vh;
-
   padding: 48px 24px;
-
   background-color: #f4f7fb;
-
   color: #1f2937;
 }
 
 .guide-container {
   width: 100%;
   max-width: 1200px;
-
   margin: 0 auto;
 }
 
 .eyebrow {
   margin: 0 0 8px;
-
   color: #2563eb;
-
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -125,7 +134,6 @@ const recommendedCities = computed(() => {
 
 h1 {
   margin: 0;
-
   font-size: 40px;
 }
 
@@ -136,19 +144,15 @@ h1 {
 .score-control {
   padding: 20px;
   margin: 28px 0 20px;
-
   background-color: #ffffff;
-
   border: 1px solid #e5e7eb;
   border-radius: 14px;
 }
 
 .score-description {
   display: flex;
-
   align-items: center;
   justify-content: space-between;
-
   gap: 20px;
 }
 
@@ -162,44 +166,28 @@ h1 {
 
 .buttons {
   display: flex;
-
   gap: 8px;
-
   margin-top: 16px;
 }
 
 .buttons button {
   padding: 8px 14px;
-
   border: 1px solid #bfdbfe;
   border-radius: 8px;
-
   background-color: #eff6ff;
   color: #1d4ed8;
-
   font-weight: 700;
-
   cursor: pointer;
 }
 
 .buttons button.active {
   border-color: #2563eb;
-
   background-color: #2563eb;
   color: #ffffff;
 }
 
-.global-hint {
-  margin: 14px 0 0;
-
-  color: #64748b;
-
-  font-size: 13px;
-}
-
 .result-summary {
   margin: 0 0 16px;
-
   color: #475569;
 }
 
@@ -209,26 +197,26 @@ h1 {
 
 .city-grid {
   display: grid;
-
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-
   gap: 18px;
 }
 
 .guide-card {
   padding: 22px;
-
   background-color: #ffffff;
-
   border: 1px solid #e5e7eb;
   border-radius: 16px;
 }
 
+.city-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .region {
   margin: 0;
-
   color: #6b7280;
-
   font-size: 13px;
 }
 
@@ -236,21 +224,35 @@ h1 {
   margin: 5px 0 20px;
 }
 
+.source {
+  height: fit-content;
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.source.live {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.source.mock {
+  background-color: #fef3c7;
+  color: #a16207;
+}
+
 .score {
   font-size: 28px;
   font-weight: 700;
-
   color: #2563eb;
 }
 
 .recommendation {
   padding: 12px;
   margin-top: 16px;
-
   background-color: #f8fafc;
-
   border-radius: 8px;
-
   font-weight: 700;
 }
 </style>

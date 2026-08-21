@@ -1,5 +1,6 @@
 <script setup>
-import { computed, ref, watch, watchEffect } from 'vue'
+import { computed, onMounted, ref, watch, watchEffect } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 
 import ActivityScoreControl from '@/components/exercise/ActivityScoreControl.vue'
@@ -7,11 +8,15 @@ import BaseDashboardCard from '@/components/exercise/BaseDashboardCard.vue'
 import SearchBar from '@/components/exercise/SearchBar.vue'
 import WeatherCard from '@/components/exercise/WeatherCard.vue'
 
-import { weatherList } from '@/data/weatherData'
 import { useConfigStore } from '@/stores/configStore'
+import { useWeatherStore } from '@/stores/weatherStore'
 
 const router = useRouter()
 const configStore = useConfigStore()
+const weatherStore = useWeatherStore()
+
+const { weatherList, isLoading, lastUpdatedAt, liveCityCount, totalCityCount } =
+  storeToRefs(weatherStore)
 
 const searchQuery = ref('')
 const selectedCityInfo = ref(null)
@@ -19,26 +24,41 @@ const selectedMessage = ref('도시를 선택해 주세요.')
 
 const filteredWeatherList = computed(() => {
   const query = searchQuery.value.trim()
-
   if (query === '') {
-    return weatherList
+    return weatherList.value
   }
-
-  return weatherList.filter((city) => city.name.includes(query))
+  return weatherList.value.filter((city) => city.name.includes(query))
 })
 
 const recommendedCityCount = computed(() => {
-  return weatherList.filter((city) => city.activityScore >= configStore.activityScoreThreshold)
-    .length
+  return weatherList.value.filter(
+    (city) => city.activityScore >= configStore.activityScoreThreshold,
+  ).length
+})
+
+const lastUpdatedLabel = computed(() => {
+  if (!lastUpdatedAt.value) {
+    return '아직 API 동기화 전'
+  }
+
+  return new Date(lastUpdatedAt.value).toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+})
+
+onMounted(async () => {
+  if (weatherStore.liveCityCount === 0) {
+    await weatherStore.fetchAllWeather()
+  }
 })
 
 watch(selectedCityInfo, (newCity, oldCity) => {
-  if (newCity === null) {
+  if (!newCity) {
     return
   }
-
   selectedMessage.value = `${newCity.name}이 선택되었습니다.`
-
   console.log(`[watch] 선택 도시 변경: ${oldCity?.name || '없음'} → ${newCity.name}`)
 })
 
@@ -55,7 +75,11 @@ const selectCity = (city) => {
 }
 
 const showDetail = (city) => {
-  router.push('/weather/' + city.id)
+  router.push(`/weather/${city.id}`)
+}
+
+const refreshWeather = async () => {
+  await weatherStore.fetchAllWeather()
 }
 </script>
 
@@ -65,12 +89,40 @@ const showDetail = (city) => {
       <header class="dashboard-header">
         <p class="eyebrow">WEATHER SIGNAL</p>
 
-        <h1>지역별 날씨 & 활동 인사이트</h1>
+        <h1>지역별 실시간 날씨 & 활동 인사이트</h1>
 
         <p class="description">
-          날씨 정보를 기반으로 오늘의 활동 적합도와 추천 활동을 함께 확인합니다.
+          OpenWeatherMap의 실제 날씨 데이터를 기반으로 활동 적합도와 추천 활동을 계산합니다.
         </p>
       </header>
+
+      <!-- API 상태 -->
+      <BaseDashboardCard>
+        <section class="live-status">
+          <div>
+            <p class="live-label">OPENWEATHERMAP LIVE</p>
+
+            <p class="live-description">
+              실시간 데이터
+              <strong>
+                {{ liveCityCount }}
+              </strong>
+              /
+              {{ totalCityCount }}
+              도시
+            </p>
+
+            <p class="updated-at">
+              마지막 동기화:
+              {{ lastUpdatedLabel }}
+            </p>
+          </div>
+
+          <button class="refresh-button" :disabled="isLoading" @click="refreshWeather">
+            {{ isLoading ? '날씨 갱신 중...' : '실시간 날씨 새로고침' }}
+          </button>
+        </section>
+      </BaseDashboardCard>
 
       <BaseDashboardCard>
         <SearchBar :query="searchQuery" @update-query="updateSearchQuery" />
@@ -141,6 +193,48 @@ const showDetail = (city) => {
   color: #6b7280;
 }
 
+.live-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.live-label {
+  margin: 0 0 6px;
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.live-description {
+  margin: 0;
+  color: #334155;
+}
+
+.updated-at {
+  margin: 6px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.refresh-button {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.refresh-button:disabled {
+  background-color: #94a3b8;
+  cursor: wait;
+}
+
 .status-bar {
   padding: 14px 18px;
   margin-bottom: 24px;
@@ -169,7 +263,6 @@ const showDetail = (city) => {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  color: #1f2937;
 }
 
 .empty-description {
@@ -188,6 +281,15 @@ const showDetail = (city) => {
 
   .dashboard-header h1 {
     font-size: 30px;
+  }
+
+  .live-status {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .refresh-button {
+    width: 100%;
   }
 }
 </style>
