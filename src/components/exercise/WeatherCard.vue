@@ -1,29 +1,39 @@
 <script setup>
-defineProps({
+import { computed } from 'vue'
+import { useConfigStore } from '@/stores/configStore'
+
+const props = defineProps({
   city: {
     type: Object,
-    required: true,
-  },
-
-  minActivityScore: {
-    type: Number,
     required: true,
   },
 })
 
 const emit = defineEmits(['select-card', 'click-detail'])
 
-const handleSelectCard = (city) => {
-  emit('select-card', city)
+const configStore = useConfigStore()
+
+const displayTemp = computed(() => {
+  const rawTemp = props.city.temp
+
+  if (configStore.unit === 'fahrenheit') {
+    return Math.round((rawTemp * 9) / 5 + 32)
+  }
+
+  return rawTemp
+})
+
+const handleSelectCard = () => {
+  emit('select-card', props.city)
 }
 
-const handleClickDetail = (city) => {
-  emit('click-detail', city)
+const handleClickDetail = () => {
+  emit('click-detail', props.city)
 }
 </script>
 
 <template>
-  <article class="weather-card" @click="handleSelectCard(city)">
+  <article class="weather-card" @click="handleSelectCard">
     <div class="card-header">
       <div>
         <p class="region">
@@ -41,11 +51,15 @@ const handleClickDetail = (city) => {
     </div>
 
     <section class="temperature-section">
-      <p class="temperature">{{ city.temp }}℃</p>
+      <p class="temperature">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
 
-      <p v-if="city.temp >= 25" class="temperature-label hot">🔥 더움 (25도 이상)</p>
+      <!--
+        원본 Mock Data의 temp는 섭씨이므로
+        날씨 판단 기준 역시 원본 섭씨 데이터를 사용한다.
+      -->
+      <p v-if="city.temp >= 25" class="temperature-label hot">🔥 더움 (25℃ 이상)</p>
 
-      <p v-else class="temperature-label cool">❄️ 선선함 (25도 미만)</p>
+      <p v-else class="temperature-label cool">❄️ 선선함 (25℃ 미만)</p>
     </section>
 
     <section class="basic-weather-info">
@@ -64,12 +78,16 @@ const handleClickDetail = (city) => {
       <div class="activity-summary">
         <div class="info-item">
           <span>활동 적합도</span>
-          <strong>{{ city.activityScore }} / 100</strong>
+
+          <strong> {{ city.activityScore }} / 100 </strong>
         </div>
 
         <div class="info-item">
           <span>판단</span>
-          <strong>{{ city.activity }}</strong>
+
+          <strong>
+            {{ city.activity }}
+          </strong>
         </div>
       </div>
 
@@ -93,14 +111,17 @@ const handleClickDetail = (city) => {
     </section>
 
     <section class="recommendation-result">
-      <p v-if="city.activityScore >= minActivityScore" class="recommendation-message recommended">
+      <p
+        v-if="city.activityScore >= configStore.activityScoreThreshold"
+        class="recommendation-message recommended"
+      >
         👍 현재 기준의 추천 도시
       </p>
 
       <p v-else class="recommendation-message not-recommended">⚠️ 현재 활동 추천 기준 미달</p>
     </section>
 
-    <button class="detail-button" @click.stop="handleClickDetail(city)">상세보기</button>
+    <button class="detail-button" @click.stop="handleClickDetail">상세보기</button>
   </article>
 </template>
 

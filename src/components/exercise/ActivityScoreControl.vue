@@ -1,58 +1,88 @@
 <script setup>
-defineProps({
-  minActivityScore: {
-    type: Number,
-    required: true,
-  },
+import { useConfigStore } from '@/stores/configStore'
 
+defineProps({
   recommendedCityCount: {
     type: Number,
     required: true,
   },
 })
 
-const emit = defineEmits(['update-score'])
-
-const updateScore = (score) => {
-  emit('update-score', score)
-}
+const configStore = useConfigStore()
 </script>
 
 <template>
-  <div class="activity-score-control">
-    <label>Activity Insight 추천 기준</label>
+  <section class="activity-score-control">
+    <div>
+      <p class="control-label">Activity Insight 추천 기준</p>
 
-    <p class="score-description">
-      활동 적합도
-      <strong>{{ minActivityScore }}점 이상</strong>인 도시를 추천 도시로 판단합니다.
-    </p>
-
-    <div class="score-buttons">
-      <button class="score-button" @click="updateScore(60)">60점</button>
-
-      <button class="score-button" @click="updateScore(70)">70점</button>
-
-      <button class="score-button" @click="updateScore(80)">80점</button>
+      <p class="control-description">
+        활동 적합도
+        <strong>
+          {{ configStore.activityThresholdLabel }}
+        </strong>
+        인 도시를 추천 도시로 판단합니다.
+      </p>
     </div>
 
-    <p class="score-description">
+    <div class="score-buttons">
+      <button
+        :class="[
+          'score-button',
+          {
+            active: configStore.activityScoreThreshold === 60,
+          },
+        ]"
+        @click="configStore.setActivityScoreThreshold(60)"
+      >
+        60점
+      </button>
+
+      <button
+        :class="[
+          'score-button',
+          {
+            active: configStore.activityScoreThreshold === 70,
+          },
+        ]"
+        @click="configStore.setActivityScoreThreshold(70)"
+      >
+        70점
+      </button>
+
+      <button
+        :class="[
+          'score-button',
+          {
+            active: configStore.activityScoreThreshold === 80,
+          },
+        ]"
+        @click="configStore.setActivityScoreThreshold(80)"
+      >
+        80점
+      </button>
+    </div>
+
+    <p class="result-text">
       현재 기준을 만족하는 추천 도시:
-      <strong>{{ recommendedCityCount }}개</strong>
+      <strong> {{ recommendedCityCount }}개 </strong>
     </p>
-  </div>
+  </section>
 </template>
 
 <style scoped>
-.activity-score-control label {
-  display: block;
+.activity-score-control {
+  width: 100%;
+}
 
-  margin-bottom: 10px;
+.control-label {
+  margin: 0;
 
   font-weight: 700;
 }
 
-.score-description {
-  margin: 12px 0 0;
+.control-description {
+  margin: 10px 0 0;
 
   color: #4b5563;
 }
@@ -81,5 +111,18 @@ const updateScore = (score) => {
 
 .score-button:hover {
   background-color: #dbeafe;
+}
+
+.score-button.active {
+  border-color: #2563eb;
+
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.result-text {
+  margin: 14px 0 0;
+
+  color: #4b5563;
 }
 </style>

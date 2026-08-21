@@ -1,13 +1,28 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
 import { weatherList } from '@/data/weatherData'
+import { useConfigStore } from '@/stores/configStore'
 
 const route = useRoute()
 const router = useRouter()
+const configStore = useConfigStore()
 
 const city = ref(null)
+
+const displayTemp = computed(() => {
+  if (city.value === null) {
+    return null
+  }
+
+  const rawTemp = city.value.temp
+
+  if (configStore.unit === 'fahrenheit') {
+    return Math.round((rawTemp * 9) / 5 + 32)
+  }
+
+  return rawTemp
+})
 
 onMounted(() => {
   const cityId = route.params.cityId
@@ -58,13 +73,13 @@ const goHome = () => {
           <div>
             <p class="metric-label">CURRENT TEMPERATURE</p>
 
-            <p class="detail-temperature">{{ city.temp }}℃</p>
+            <p class="detail-temperature">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
           </div>
 
           <div class="temperature-condition">
-            <span v-if="city.temp >= 25"> 🔥 25℃ 이상의 더운 날씨 </span>
+            <span v-if="city.temp >= 25"> 🔥 원본 기온 기준 더운 날씨 </span>
 
-            <span v-else> ❄️ 25℃ 미만의 선선한 날씨 </span>
+            <span v-else> ❄️ 원본 기온 기준 선선한 날씨 </span>
           </div>
         </section>
 
@@ -96,6 +111,32 @@ const goHome = () => {
           </article>
         </section>
 
+        <!-- 개인 configStore 확장 활용 -->
+        <section class="global-config-section">
+          <p class="section-label">GLOBAL ACTIVITY CONFIG</p>
+
+          <div class="global-config-content">
+            <div>
+              <span>현재 추천 기준</span>
+
+              <strong>
+                {{ configStore.activityThresholdLabel }}
+              </strong>
+            </div>
+
+            <p
+              v-if="city.activityScore >= configStore.activityScoreThreshold"
+              class="detail-recommended"
+            >
+              👍 이 도시는 현재 전역 추천 기준을 만족합니다.
+            </p>
+
+            <p v-else class="detail-not-recommended">
+              ⚠️ 이 도시는 현재 전역 추천 기준에 미달합니다.
+            </p>
+          </div>
+        </section>
+
         <section class="insight-section">
           <p class="section-label">ACTIVITY INSIGHT</p>
 
@@ -104,12 +145,18 @@ const goHome = () => {
           <div class="insight-detail">
             <div class="insight-row">
               <span>추천 활동</span>
-              <strong>{{ city.recommendation }}</strong>
+
+              <strong>
+                {{ city.recommendation }}
+              </strong>
             </div>
 
             <div class="insight-row">
               <span>주의 사항</span>
-              <strong>{{ city.caution }}</strong>
+
+              <strong>
+                {{ city.caution }}
+              </strong>
             </div>
           </div>
         </section>
@@ -286,6 +333,7 @@ const goHome = () => {
   line-height: 1.5;
 }
 
+.global-config-section,
 .insight-section {
   padding: 28px;
   margin-top: 20px;
@@ -294,6 +342,44 @@ const goHome = () => {
 
   border: 1px solid #e5e7eb;
   border-radius: 18px;
+}
+
+.global-config-content {
+  margin-top: 16px;
+}
+
+.global-config-content > div {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 14px 16px;
+
+  background-color: #f8fafc;
+
+  border-radius: 10px;
+}
+
+.global-config-content span {
+  color: #6b7280;
+}
+
+.detail-recommended,
+.detail-not-recommended {
+  margin: 14px 0 0;
+
+  font-weight: 700;
+}
+
+.detail-recommended {
+  color: #2563eb;
+}
+
+.detail-not-recommended {
+  color: #dc2626;
 }
 
 .insight-section h2 {

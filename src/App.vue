@@ -2,6 +2,7 @@
 // import WeatherMockup from './components/exercise/WeatherMockup.vue'
 // import WeatherParent from './components/exercise/WeatherParent.vue'
 import { RouterLink, RouterView } from 'vue-router'
+import UnitToggler from '@/components/exercise/UnitToggler.vue'
 
 // import SampleOne from './components/practices/basic/SampleOne.vue'
 // import SampleTwo from './components/practices/basic/SampleTwo.vue'
@@ -52,13 +53,19 @@ import { RouterLink, RouterView } from 'vue-router'
   <div class="app-shell">
     <header class="app-header">
       <div class="navigation">
-        <RouterLink to="/" class="brand">WEATHER SIGNAL</RouterLink>
+        <RouterLink to="/" class="brand"> WEATHER SIGNAL </RouterLink>
 
-        <nav class="nav-links">
-          <RouterLink to="/">날씨</RouterLink>
-          <RouterLink to="/activity-guide">Activity Guide</RouterLink>
-          <RouterLink to="/about">소개</RouterLink>
-        </nav>
+        <div class="navigation-right">
+          <nav class="nav-links">
+            <RouterLink to="/"> 날씨 </RouterLink>
+
+            <RouterLink to="/activity-guide"> Activity Guide </RouterLink>
+
+            <RouterLink to="/about"> 소개 </RouterLink>
+          </nav>
+
+          <UnitToggler />
+        </div>
       </div>
     </header>
 
@@ -121,61 +128,110 @@ import { RouterLink, RouterView } from 'vue-router'
   width: 100%;
   min-height: 100vh;
 }
+
 .app-header {
   position: sticky;
   top: 0;
   z-index: 10;
+
   width: 100%;
+
   background-color: rgba(255, 255, 255, 0.96);
+
   border-bottom: 1px solid #e5e7eb;
 }
+
 .navigation {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
+
   width: 100%;
   max-width: 1448px;
+
   box-sizing: border-box;
+
   margin: 0 auto;
   padding: 16px 24px;
 }
+
 .brand {
   color: #2563eb;
+
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 1.6px;
+
   text-decoration: none;
+
+  white-space: nowrap;
 }
+
+.navigation-right {
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+}
+
 .nav-links {
   display: flex;
+
   align-items: center;
+
   gap: 8px;
 }
+
 .nav-links a {
   padding: 9px 14px;
+
   border-radius: 8px;
+
   color: #475569;
+
   font-weight: 700;
+
   text-decoration: none;
+
+  white-space: nowrap;
 }
+
 .nav-links a:hover {
   background-color: #f1f5f9;
 }
+
 .nav-links a.router-link-exact-active {
   background-color: #eff6ff;
+
   color: #2563eb;
 }
+
 .app-content {
   width: 100%;
 }
-@media (max-width: 640px) {
+
+@media (max-width: 760px) {
   .navigation {
     align-items: flex-start;
     flex-direction: column;
+
     gap: 12px;
   }
+
+  .navigation-right {
+    width: 100%;
+
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
   .nav-links {
     width: 100%;
+
     overflow-x: auto;
   }
 }

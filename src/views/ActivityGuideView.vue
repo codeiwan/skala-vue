@@ -1,12 +1,13 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 import { weatherList } from '@/data/weatherData'
+import { useConfigStore } from '@/stores/configStore'
 
-const selectedScore = ref(70)
+const configStore = useConfigStore()
 
 const recommendedCities = computed(() => {
-  return weatherList.filter((city) => city.activityScore >= selectedScore.value)
+  return weatherList.filter((city) => city.activityScore >= configStore.activityScoreThreshold)
 })
 </script>
 
@@ -24,18 +25,50 @@ const recommendedCities = computed(() => {
       </header>
 
       <section class="score-control">
-        <span> 최소 활동 적합도 </span>
+        <div class="score-description">
+          <span> 전역 활동 추천 기준 </span>
 
-        <div class="buttons">
-          <button @click="selectedScore = 60">60점</button>
-
-          <button @click="selectedScore = 70">70점</button>
-
-          <button @click="selectedScore = 80">80점</button>
+          <strong>
+            {{ configStore.activityThresholdLabel }}
+          </strong>
         </div>
 
-        <strong> {{ selectedScore }}점 이상 </strong>
+        <div class="buttons">
+          <button
+            :class="{
+              active: configStore.activityScoreThreshold === 60,
+            }"
+            @click="configStore.setActivityScoreThreshold(60)"
+          >
+            60점
+          </button>
+
+          <button
+            :class="{
+              active: configStore.activityScoreThreshold === 70,
+            }"
+            @click="configStore.setActivityScoreThreshold(70)"
+          >
+            70점
+          </button>
+
+          <button
+            :class="{
+              active: configStore.activityScoreThreshold === 80,
+            }"
+            @click="configStore.setActivityScoreThreshold(80)"
+          >
+            80점
+          </button>
+        </div>
+
+        <p class="global-hint">이 기준은 날씨 대시보드와 상세 페이지에도 동일하게 적용됩니다.</p>
       </section>
+
+      <p class="result-summary">
+        현재 추천 도시
+        <strong> {{ recommendedCities.length }}개 </strong>
+      </p>
 
       <section class="city-grid">
         <article v-for="city in recommendedCities" :key="city.id" class="guide-card">
@@ -101,14 +134,8 @@ h1 {
 }
 
 .score-control {
-  display: flex;
-
-  align-items: center;
-
-  gap: 16px;
-
   padding: 20px;
-  margin: 28px 0;
+  margin: 28px 0 20px;
 
   background-color: #ffffff;
 
@@ -116,10 +143,29 @@ h1 {
   border-radius: 14px;
 }
 
+.score-description {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.score-description span {
+  color: #64748b;
+}
+
+.score-description strong {
+  color: #2563eb;
+}
+
 .buttons {
   display: flex;
 
   gap: 8px;
+
+  margin-top: 16px;
 }
 
 .buttons button {
@@ -134,6 +180,31 @@ h1 {
   font-weight: 700;
 
   cursor: pointer;
+}
+
+.buttons button.active {
+  border-color: #2563eb;
+
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.global-hint {
+  margin: 14px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+.result-summary {
+  margin: 0 0 16px;
+
+  color: #475569;
+}
+
+.result-summary strong {
+  color: #2563eb;
 }
 
 .city-grid {
