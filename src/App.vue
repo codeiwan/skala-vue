@@ -50,6 +50,8 @@ import UnitToggler from '@/components/exercise/UnitToggler.vue'
 
 // import AxiosWeather from './components/practices/library/AxiosWeather.vue'
 // import AxiosJson from './components/practices/library/AxiosJson.vue'
+
+// import ElementPlus from './components/practices/library/ElementPlus.vue'
 </script>
 
 <template>
@@ -126,6 +128,8 @@ import UnitToggler from '@/components/exercise/UnitToggler.vue'
 
   <!-- <AxiosWeather /> -->
   <!-- <AxiosJson /> -->
+
+  <!-- <ElementPlus /> -->
   <!-- </div> -->
 </template>
 
