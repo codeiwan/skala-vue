@@ -26,8 +26,13 @@ const handleClickDetail = (city) => {
   <article class="weather-card" @click="handleSelectCard(city)">
     <div class="card-header">
       <div>
-        <p class="region">{{ city.region }}</p>
-        <h2>{{ city.name }}</h2>
+        <p class="region">
+          {{ city.region }}
+        </p>
+
+        <h2>
+          {{ city.name }}
+        </h2>
       </div>
 
       <span class="weather-status">
@@ -70,7 +75,7 @@ const handleClickDetail = (city) => {
 
       <div class="insight-panel">
         <div class="insight-row">
-          <span class="insight-label">추천</span>
+          <span class="insight-label"> 추천 </span>
 
           <strong class="insight-value">
             {{ city.recommendation }}
@@ -78,7 +83,7 @@ const handleClickDetail = (city) => {
         </div>
 
         <div class="insight-row">
-          <span class="insight-label">주의</span>
+          <span class="insight-label"> 주의 </span>
 
           <strong class="insight-value">
             {{ city.caution }}
@@ -133,6 +138,7 @@ const handleClickDetail = (city) => {
 
 .card-header h2 {
   margin: 3px 0 0;
+
   font-size: 24px;
 }
 
