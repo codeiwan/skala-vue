@@ -47,6 +47,9 @@ import UnitToggler from '@/components/exercise/UnitToggler.vue'
 // import SlotScopedParent from './components/practices/component/SlotScopedParent.vue'
 
 // import StoreCounter from './components/practices/library/StoreCounter.vue'
+
+// import AxiosWeather from './components/practices/library/AxiosWeather.vue'
+// import AxiosJson from './components/practices/library/AxiosJson.vue'
 </script>
 
 <template>
@@ -120,6 +123,9 @@ import UnitToggler from '@/components/exercise/UnitToggler.vue'
   <!-- <SlotScopedParent /> -->
 
   <!-- <StoreCounter /> -->
+
+  <!-- <AxiosWeather /> -->
+  <!-- <AxiosJson /> -->
   <!-- </div> -->
 </template>
 
