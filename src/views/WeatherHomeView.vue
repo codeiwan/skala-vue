@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 import ActivityScoreControl from '@/components/exercise/ActivityScoreControl.vue'
 import BaseDashboardCard from '@/components/exercise/BaseDashboardCard.vue'
@@ -12,6 +13,7 @@ import { useConfigStore } from '@/stores/configStore'
 import { useWeatherStore } from '@/stores/weatherStore'
 
 const router = useRouter()
+
 const configStore = useConfigStore()
 const weatherStore = useWeatherStore()
 
@@ -24,9 +26,11 @@ const selectedMessage = ref('도시를 선택해 주세요.')
 
 const filteredWeatherList = computed(() => {
   const query = searchQuery.value.trim()
+
   if (query === '') {
     return weatherList.value
   }
+
   return weatherList.value.filter((city) => city.name.includes(query))
 })
 
@@ -38,7 +42,7 @@ const recommendedCityCount = computed(() => {
 
 const lastUpdatedLabel = computed(() => {
   if (!lastUpdatedAt.value) {
-    return '아직 API 동기화 전'
+    return '아직 동기화하지 않음'
   }
 
   return new Date(lastUpdatedAt.value).toLocaleTimeString('ko-KR', {
@@ -58,9 +62,18 @@ watch(selectedCityInfo, (newCity, oldCity) => {
   if (!newCity) {
     return
   }
+
   selectedMessage.value = `${newCity.name}이 선택되었습니다.`
+
   console.log(`[watch] 선택 도시 변경: ${oldCity?.name || '없음'} → ${newCity.name}`)
 })
+
+watch(
+  () => configStore.activityScoreThreshold,
+  (newScore, oldScore) => {
+    console.log(`[Pinia] Activity 추천 기준 변경: ${oldScore}점 → ${newScore}점`)
+  },
+)
 
 watchEffect(() => {
   console.log(`[watchEffect] 현재 검색어: "${searchQuery.value}"`)
@@ -80,78 +93,107 @@ const showDetail = (city) => {
 
 const refreshWeather = async () => {
   await weatherStore.fetchAllWeather()
+
+  if (liveCityCount.value === totalCityCount.value) {
+    ElMessage.success(`${liveCityCount.value}개 도시의 실시간 날씨를 모두 갱신했습니다.`)
+
+    return
+  }
+
+  ElMessage.warning(
+    `${liveCityCount.value}/${totalCityCount.value}개 도시의 실시간 날씨를 갱신했습니다.`,
+  )
 }
 </script>
 
 <template>
   <div class="weather-page">
     <section class="weather-dashboard">
+      <!-- Header -->
       <header class="dashboard-header">
-        <p class="eyebrow">WEATHER SIGNAL</p>
+        <div>
+          <p class="eyebrow">WEATHER SIGNAL</p>
 
-        <h1>지역별 실시간 날씨 & 활동 인사이트</h1>
+          <h1>지역별 실시간 날씨 & 활동 인사이트</h1>
 
-        <p class="description">
-          OpenWeatherMap의 실제 날씨 데이터를 기반으로 활동 적합도와 추천 활동을 계산합니다.
-        </p>
+          <p class="description">
+            OpenWeatherMap의 실제 날씨 데이터를 기반으로 활동 적합도와 추천 활동을 분석합니다.
+          </p>
+        </div>
+
+        <el-tag type="success" effect="dark" round size="large"> LIVE WEATHER </el-tag>
       </header>
 
-      <!-- API 상태 -->
+      <!-- API Summary -->
       <BaseDashboardCard>
-        <section class="live-status">
-          <div>
-            <p class="live-label">OPENWEATHERMAP LIVE</p>
+        <section class="api-summary">
+          <div class="statistics">
+            <el-statistic title="실시간 데이터" :value="liveCityCount" />
 
-            <p class="live-description">
-              실시간 데이터
+            <el-statistic title="전체 도시" :value="totalCityCount" />
+
+            <div class="updated-info">
+              <span> 마지막 동기화 </span>
+
               <strong>
-                {{ liveCityCount }}
+                {{ lastUpdatedLabel }}
               </strong>
-              /
-              {{ totalCityCount }}
-              도시
-            </p>
-
-            <p class="updated-at">
-              마지막 동기화:
-              {{ lastUpdatedLabel }}
-            </p>
+            </div>
           </div>
 
-          <button class="refresh-button" :disabled="isLoading" @click="refreshWeather">
-            {{ isLoading ? '날씨 갱신 중...' : '실시간 날씨 새로고침' }}
-          </button>
+          <el-button type="primary" :loading="isLoading" @click="refreshWeather">
+            {{ isLoading ? '날씨 동기화 중' : '실시간 날씨 새로고침' }}
+          </el-button>
         </section>
       </BaseDashboardCard>
 
+      <!-- Search -->
       <BaseDashboardCard>
         <SearchBar :query="searchQuery" @update-query="updateSearchQuery" />
       </BaseDashboardCard>
 
+      <!-- Activity Threshold -->
       <BaseDashboardCard>
         <ActivityScoreControl :recommended-city-count="recommendedCityCount" />
       </BaseDashboardCard>
 
-      <div class="status-bar">
-        {{ selectedMessage }}
-      </div>
+      <!-- Pinia Activity Insight -->
+      <el-alert
+        :title="`${configStore.activityScoreThreshold}점 이상을 추천 기준으로 적용 중 · 현재 ${recommendedCityCount}개 도시 추천`"
+        type="success"
+        :closable="false"
+        show-icon
+        class="activity-threshold-alert"
+      />
 
+      <!-- Selected City -->
+      <el-alert
+        :title="selectedMessage"
+        type="info"
+        :closable="false"
+        show-icon
+        class="selected-alert"
+      />
+
+      <!-- Weather List -->
       <BaseDashboardCard>
-        <section v-if="filteredWeatherList.length > 0" class="weather-grid">
-          <WeatherCard
-            v-for="city in filteredWeatherList"
-            :key="city.id"
-            :city="city"
-            @select-card="selectCity"
-            @click-detail="showDetail"
-          />
-        </section>
+        <div
+          v-loading="isLoading"
+          element-loading-text="OpenWeatherMap의 최신 날씨를 불러오는 중입니다..."
+          class="weather-content"
+        >
+          <section v-if="filteredWeatherList.length > 0" class="weather-grid">
+            <WeatherCard
+              v-for="city in filteredWeatherList"
+              :key="city.id"
+              :city="city"
+              @select-card="selectCity"
+              @click-detail="showDetail"
+            />
+          </section>
 
-        <section v-else class="empty-result">
-          <p class="empty-title">검색 결과가 없습니다.</p>
-
-          <p class="empty-description">"{{ searchQuery }}"와 일치하는 도시를 찾을 수 없습니다.</p>
-        </section>
+          <el-empty v-else :description="`'${searchQuery}'와 일치하는 도시를 찾을 수 없습니다.`" />
+        </div>
       </BaseDashboardCard>
     </section>
   </div>
@@ -161,7 +203,7 @@ const refreshWeather = async () => {
 .weather-page {
   min-height: 100vh;
   padding: 48px 24px;
-  background-color: #f4f7fb;
+  background: #f4f7fb;
   color: #1f2937;
 }
 
@@ -172,6 +214,10 @@ const refreshWeather = async () => {
 }
 
 .dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
   margin-bottom: 32px;
 }
 
@@ -186,62 +232,53 @@ const refreshWeather = async () => {
 .dashboard-header h1 {
   margin: 0;
   font-size: 36px;
+  letter-spacing: -0.6px;
 }
 
 .description {
-  margin-top: 10px;
-  color: #6b7280;
+  margin: 10px 0 0;
+  color: #64748b;
 }
 
-.live-status {
+.api-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 24px;
 }
 
-.live-label {
-  margin: 0 0 6px;
-  color: #16a34a;
+.statistics {
+  display: flex;
+  align-items: center;
+  gap: 42px;
+}
+
+.updated-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.updated-info span {
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 1.4px;
+  color: #94a3b8;
 }
 
-.live-description {
-  margin: 0;
+.updated-info strong {
+  font-size: 14px;
   color: #334155;
 }
 
-.updated-at {
-  margin: 6px 0 0;
-  color: #94a3b8;
-  font-size: 12px;
+.activity-threshold-alert {
+  margin-bottom: 12px;
 }
 
-.refresh-button {
-  flex-shrink: 0;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  background-color: #2563eb;
-  color: #ffffff;
-  font-weight: 700;
-  cursor: pointer;
+.selected-alert {
+  margin-bottom: 20px;
 }
 
-.refresh-button:disabled {
-  background-color: #94a3b8;
-  cursor: wait;
-}
-
-.status-bar {
-  padding: 14px 18px;
-  margin-bottom: 24px;
-  background-color: #e8f0ff;
-  border-radius: 10px;
-  color: #1d4ed8;
-  font-weight: 700;
+.weather-content {
+  min-height: 220px;
 }
 
 .weather-grid {
@@ -251,23 +288,16 @@ const refreshWeather = async () => {
   align-items: stretch;
 }
 
-.empty-result {
-  padding: 48px 24px;
-  background-color: #ffffff;
-  border: 1px dashed #cbd5e1;
-  border-radius: 16px;
-  text-align: center;
-}
+@media (max-width: 760px) {
+  .dashboard-header,
+  .api-summary {
+    flex-direction: column;
+  }
 
-.empty-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.empty-description {
-  margin: 10px 0 0;
-  color: #6b7280;
+  .statistics {
+    flex-wrap: wrap;
+    gap: 24px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -275,21 +305,12 @@ const refreshWeather = async () => {
     padding: 32px 16px;
   }
 
-  .weather-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-
   .dashboard-header h1 {
     font-size: 30px;
   }
 
-  .live-status {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .refresh-button {
-    width: 100%;
+  .weather-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
 }
 </style>

@@ -8,57 +8,65 @@ defineProps({
 
 const emit = defineEmits(['update-query'])
 
-const handleInput = (event) => {
-  emit('update-query', event.target.value)
+const handleInput = (value) => {
+  emit('update-query', value)
 }
 </script>
 
 <template>
-  <div class="search-bar">
-    <label for="city-search">도시 검색</label>
+  <section class="search-control">
+    <div class="control-heading">
+      <div>
+        <p class="control-title">도시 검색</p>
 
-    <input
-      id="city-search"
-      type="text"
-      :value="query"
-      placeholder="도시 이름을 한글로 입력하세요"
+        <p class="control-description">전국 주요 도시의 실시간 날씨를 검색합니다.</p>
+      </div>
+
+      <el-tag type="info" effect="plain">
+        {{ query ? `"${query}" 검색 중` : '전체 도시' }}
+      </el-tag>
+    </div>
+
+    <el-input
+      :model-value="query"
+      size="large"
+      clearable
+      placeholder="도시 이름을 입력하세요. 예: 서울, 부산, 제주"
       @input="handleInput"
+      @clear="handleInput('')"
     />
-
-    <p class="search-result">
-      검색 중인 도시:
-      <strong>
-        {{ query || '전체 도시' }}
-      </strong>
-    </p>
-  </div>
+  </section>
 </template>
 
 <style scoped>
-.search-bar label {
-  display: block;
-
-  margin-bottom: 10px;
-
-  font-weight: 700;
-}
-
-.search-bar input {
+.search-control {
   width: 100%;
-
-  box-sizing: border-box;
-
-  padding: 12px 14px;
-
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-
-  font-size: 16px;
 }
 
-.search-result {
-  margin: 12px 0 0;
+.control-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+}
 
-  color: #4b5563;
+.control-title {
+  margin: 0;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.control-description {
+  margin: 7px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+@media (max-width: 600px) {
+  .control-heading {
+    flex-direction: column;
+    gap: 10px;
+  }
 }
 </style>

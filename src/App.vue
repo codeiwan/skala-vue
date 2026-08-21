@@ -1,8 +1,10 @@
 <script setup>
 // import WeatherMockup from './components/exercise/WeatherMockup.vue'
 // import WeatherParent from './components/exercise/WeatherParent.vue'
-import { RouterLink, RouterView } from 'vue-router'
+
+import { RouterView, useRoute } from 'vue-router'
 import UnitToggler from '@/components/exercise/UnitToggler.vue'
+const route = useRoute()
 
 // import SampleOne from './components/practices/basic/SampleOne.vue'
 // import SampleTwo from './components/practices/basic/SampleTwo.vue'
@@ -58,16 +60,26 @@ import UnitToggler from '@/components/exercise/UnitToggler.vue'
   <div class="app-shell">
     <header class="app-header">
       <div class="navigation">
-        <RouterLink to="/" class="brand"> WEATHER SIGNAL </RouterLink>
+        <div class="brand-area">
+          <RouterLink to="/" class="brand"> WEATHER SIGNAL </RouterLink>
+
+          <el-tag size="small" type="primary" effect="plain" round> Vue </el-tag>
+        </div>
 
         <div class="navigation-right">
-          <nav class="nav-links">
-            <RouterLink to="/"> 날씨 </RouterLink>
+          <el-menu
+            :default-active="route.path"
+            mode="horizontal"
+            router
+            :ellipsis="false"
+            class="main-menu"
+          >
+            <el-menu-item index="/"> 날씨 </el-menu-item>
 
-            <RouterLink to="/activity-guide"> Activity Guide </RouterLink>
+            <el-menu-item index="/activity-guide"> Activity Guide </el-menu-item>
 
-            <RouterLink to="/about"> 소개 </RouterLink>
-          </nav>
+            <el-menu-item index="/about"> 소개 </el-menu-item>
+          </el-menu>
 
           <UnitToggler />
         </div>
@@ -142,80 +154,46 @@ import UnitToggler from '@/components/exercise/UnitToggler.vue'
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 10;
-
+  z-index: 100;
   width: 100%;
-
-  background-color: rgba(255, 255, 255, 0.96);
-
+  background: rgba(255, 255, 255, 0.96);
   border-bottom: 1px solid #e5e7eb;
+  backdrop-filter: blur(12px);
 }
 
 .navigation {
   display: flex;
-
   align-items: center;
   justify-content: space-between;
-
   width: 100%;
   max-width: 1448px;
-
-  box-sizing: border-box;
-
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 0 24px;
+}
+
+.brand-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .brand {
   color: #2563eb;
-
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 1.6px;
-
   text-decoration: none;
-
   white-space: nowrap;
 }
 
 .navigation-right {
   display: flex;
-
   align-items: center;
-
-  gap: 18px;
+  gap: 22px;
 }
 
-.nav-links {
-  display: flex;
-
-  align-items: center;
-
-  gap: 8px;
-}
-
-.nav-links a {
-  padding: 9px 14px;
-
-  border-radius: 8px;
-
-  color: #475569;
-
-  font-weight: 700;
-
-  text-decoration: none;
-
-  white-space: nowrap;
-}
-
-.nav-links a:hover {
-  background-color: #f1f5f9;
-}
-
-.nav-links a.router-link-exact-active {
-  background-color: #eff6ff;
-
-  color: #2563eb;
+.main-menu {
+  border-bottom: none !important;
 }
 
 .app-content {
@@ -226,22 +204,19 @@ import UnitToggler from '@/components/exercise/UnitToggler.vue'
   .navigation {
     align-items: flex-start;
     flex-direction: column;
-
-    gap: 12px;
+    gap: 10px;
+    padding: 14px 16px;
   }
 
   .navigation-right {
     width: 100%;
-
     align-items: flex-start;
     flex-direction: column;
-
     gap: 10px;
   }
 
-  .nav-links {
+  .main-menu {
     width: 100%;
-
     overflow-x: auto;
   }
 }

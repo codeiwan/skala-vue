@@ -7,6 +7,32 @@ import { useWeatherStore } from '@/stores/weatherStore'
 const configStore = useConfigStore()
 const weatherStore = useWeatherStore()
 const { weatherList, liveCityCount } = storeToRefs(weatherStore)
+
+const scoreOptions = [
+  {
+    label: '60점',
+    value: 60,
+  },
+  {
+    label: '70점',
+    value: 70,
+  },
+  {
+    label: '80점',
+    value: 80,
+  },
+]
+
+const scoreModel = computed({
+  get() {
+    return configStore.activityScoreThreshold
+  },
+
+  set(value) {
+    configStore.setActivityScoreThreshold(value)
+  },
+})
+
 const recommendedCities = computed(() => {
   return weatherList.value.filter(
     (city) => city.activityScore >= configStore.activityScoreThreshold,
@@ -23,89 +49,76 @@ onMounted(async () => {
 <template>
   <div class="guide-page">
     <main class="guide-container">
-      <header>
-        <p class="eyebrow">ACTIVITY GUIDE</p>
+      <header class="guide-header">
+        <div>
+          <p class="eyebrow">ACTIVITY GUIDE</p>
 
-        <h1>오늘 어디서 활동할까?</h1>
+          <h1>오늘 어디서 활동할까?</h1>
 
-        <p class="description">
-          OpenWeatherMap의 현재 날씨를 기반으로 계산된 활동 적합도를 활용합니다.
-        </p>
+          <p class="description">실제 날씨 데이터를 기반으로 활동하기 좋은 도시를 확인합니다.</p>
+        </div>
+
+        <el-tag type="success" effect="dark" size="large" round>
+          추천 {{ recommendedCities.length }}개
+        </el-tag>
       </header>
 
-      <section class="score-control">
-        <div class="score-description">
-          <span> 전역 활동 추천 기준 </span>
+      <el-card shadow="never" class="control-card">
+        <div class="score-control">
+          <div>
+            <span class="control-label"> 전역 활동 추천 기준 </span>
 
-          <strong>
-            {{ configStore.activityThresholdLabel }}
-          </strong>
+            <strong>
+              {{ configStore.activityThresholdLabel }}
+            </strong>
+          </div>
+
+          <el-segmented v-model="scoreModel" :options="scoreOptions" size="large" />
         </div>
+      </el-card>
 
-        <div class="buttons">
-          <button
-            :class="{
-              active: configStore.activityScoreThreshold === 60,
-            }"
-            @click="configStore.setActivityScoreThreshold(60)"
-          >
-            60점
-          </button>
-
-          <button
-            :class="{
-              active: configStore.activityScoreThreshold === 70,
-            }"
-            @click="configStore.setActivityScoreThreshold(70)"
-          >
-            70점
-          </button>
-
-          <button
-            :class="{
-              active: configStore.activityScoreThreshold === 80,
-            }"
-            @click="configStore.setActivityScoreThreshold(80)"
-          >
-            80점
-          </button>
-        </div>
-      </section>
-
-      <p class="result-summary">
-        현재 추천 도시
-        <strong> {{ recommendedCities.length }}개 </strong>
-      </p>
-
-      <section class="city-grid">
-        <article v-for="city in recommendedCities" :key="city.id" class="guide-card">
+      <section v-if="recommendedCities.length > 0" class="city-grid">
+        <el-card v-for="city in recommendedCities" :key="city.id" shadow="hover" class="guide-card">
           <div class="city-heading">
             <div>
-              <p class="region">
+              <span class="region">
                 {{ city.region }}
-              </p>
+              </span>
 
               <h2>
                 {{ city.name }}
               </h2>
             </div>
 
-            <span :class="['source', city.source]">
+            <el-tag :type="city.source === 'live' ? 'success' : 'warning'" size="small">
               {{ city.source === 'live' ? 'LIVE' : 'MOCK' }}
-            </span>
+            </el-tag>
           </div>
 
-          <p class="score">{{ city.activityScore }}점</p>
+          <div class="score-heading">
+            <strong>
+              {{ city.activityScore }}
+            </strong>
 
-          <p>
+            <span>/ 100</span>
+          </div>
+
+          <el-progress
+            :percentage="city.activityScore"
+            :stroke-width="10"
+            :show-text="false"
+            status="success"
+          />
+
+          <p class="activity">
             {{ city.activity }}
           </p>
 
-          <div class="recommendation">
-            {{ city.recommendation }}
-          </div>
-        </article>
+          <el-alert :title="city.recommendation" type="success" :closable="false" />
+        </el-card>
       </section>
+
+      <el-empty v-else description="현재 기준을 충족하는 도시가 없습니다." />
     </main>
   </div>
 </template>
@@ -114,7 +127,7 @@ onMounted(async () => {
 .guide-page {
   min-height: 100vh;
   padding: 48px 24px;
-  background-color: #f4f7fb;
+  background: #f4f7fb;
   color: #1f2937;
 }
 
@@ -122,6 +135,14 @@ onMounted(async () => {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.guide-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
 }
 
 .eyebrow {
@@ -138,121 +159,87 @@ h1 {
 }
 
 .description {
-  color: #6b7280;
-}
-
-.score-control {
-  padding: 20px;
-  margin: 28px 0 20px;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-}
-
-.score-description {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.score-description span {
   color: #64748b;
 }
 
-.score-description strong {
-  color: #2563eb;
+.control-card {
+  margin-bottom: 20px;
+  border-radius: 14px;
 }
 
-.buttons {
+.score-control {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 }
 
-.buttons button {
-  padding: 8px 14px;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  background-color: #eff6ff;
-  color: #1d4ed8;
-  font-weight: 700;
-  cursor: pointer;
+.score-control > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.buttons button.active {
-  border-color: #2563eb;
-  background-color: #2563eb;
-  color: #ffffff;
+.control-label {
+  font-size: 12px;
+  color: #64748b;
 }
 
-.result-summary {
-  margin: 0 0 16px;
-  color: #475569;
-}
-
-.result-summary strong {
+.score-control strong {
   color: #2563eb;
 }
 
 .city-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 18px;
 }
 
 .guide-card {
-  padding: 22px;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
   border-radius: 16px;
 }
 
 .city-heading {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
 
 .region {
-  margin: 0;
-  color: #6b7280;
   font-size: 13px;
+  color: #64748b;
 }
 
 .guide-card h2 {
-  margin: 5px 0 20px;
+  margin: 5px 0 18px;
 }
 
-.source {
-  height: fit-content;
-  padding: 4px 7px;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 800;
+.score-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
-.source.live {
-  background-color: #dcfce7;
-  color: #15803d;
-}
-
-.source.mock {
-  background-color: #fef3c7;
-  color: #a16207;
-}
-
-.score {
-  font-size: 28px;
-  font-weight: 700;
+.score-heading strong {
+  font-size: 30px;
   color: #2563eb;
 }
 
-.recommendation {
-  padding: 12px;
-  margin-top: 16px;
-  background-color: #f8fafc;
-  border-radius: 8px;
+.score-heading span {
+  color: #94a3b8;
+}
+
+.activity {
+  margin: 16px 0;
   font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .guide-header,
+  .score-control {
+    flex-direction: column;
+  }
 }
 </style>

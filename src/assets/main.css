@@ -1,3 +1,15 @@
+:root {
+  --el-color-primary: #2563eb;
+  --el-color-primary-light-3: #60a5fa;
+  --el-color-primary-light-5: #93c5fd;
+  --el-color-primary-light-7: #bfdbfe;
+  --el-color-primary-light-9: #eff6ff;
+  --el-border-radius-base: 8px;
+  --weather-bg: #f4f7fb;
+  --weather-text: #1f2937;
+  --weather-muted: #64748b;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -8,15 +20,13 @@ body,
   width: 100%;
   min-width: 320px;
   min-height: 100vh;
-
   margin: 0;
 }
 
 body {
   margin: 0;
-
-  background-color: #f4f7fb;
-
+  background-color: var(--weather-bg);
+  color: var(--weather-text);
   font-family:
     Inter,
     Pretendard,
@@ -24,8 +34,6 @@ body {
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-
-  color: #1f2937;
 }
 
 button,
@@ -33,6 +41,6 @@ input {
   font: inherit;
 }
 
-button {
-  cursor: pointer;
+a {
+  color: inherit;
 }

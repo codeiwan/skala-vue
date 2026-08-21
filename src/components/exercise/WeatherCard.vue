@@ -27,6 +27,22 @@ const displayFeelsLike = computed(() => {
   return convertTemperature(props.city.feelsLike)
 })
 
+const isRecommended = computed(() => {
+  return props.city.activityScore >= configStore.activityScoreThreshold
+})
+
+const activityProgressStatus = computed(() => {
+  if (props.city.activityScore >= 80) {
+    return 'success'
+  }
+
+  if (props.city.activityScore >= 60) {
+    return 'warning'
+  }
+
+  return 'exception'
+})
+
 const handleSelectCard = () => {
   emit('select-card', props.city)
 }
@@ -37,17 +53,22 @@ const handleClickDetail = () => {
 </script>
 
 <template>
-  <article class="weather-card" @click="handleSelectCard">
+  <el-card class="weather-card" shadow="hover" @click="handleSelectCard">
     <div class="card-header">
       <div>
         <div class="region-row">
-          <p class="region">
+          <span class="region">
             {{ city.region }}
-          </p>
-
-          <span :class="['data-source', city.source === 'live' ? 'live' : 'mock']">
-            {{ city.isLoading ? 'LOADING' : city.source === 'live' ? 'LIVE' : 'MOCK' }}
           </span>
+
+          <el-tag
+            :type="city.source === 'live' ? 'success' : 'warning'"
+            size="small"
+            effect="light"
+            round
+          >
+            {{ city.isLoading ? 'LOADING' : city.source === 'live' ? 'LIVE' : 'MOCK' }}
+          </el-tag>
         </div>
 
         <h2>
@@ -55,22 +76,24 @@ const handleClickDetail = () => {
         </h2>
       </div>
 
-      <span class="weather-status">
+      <el-tag type="info" effect="plain" round>
         {{ city.status }}
-      </span>
+      </el-tag>
     </div>
 
     <section class="temperature-section">
       <p class="temperature">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
 
-      <p v-if="city.temp >= 25" class="temperature-label hot">🔥 더움 (25℃ 이상)</p>
+      <el-tag v-if="city.temp >= 25" type="danger" effect="light"> 🔥 더움 (25℃ 이상) </el-tag>
 
-      <p v-else class="temperature-label cool">❄️ 선선함 (25℃ 미만)</p>
+      <el-tag v-else type="primary" effect="light"> ❄️ 선선함 (25℃ 미만) </el-tag>
     </section>
 
-    <section class="basic-weather-info">
+    <el-divider />
+
+    <section class="weather-info">
       <div class="info-item">
-        <span>체감</span>
+        <span>체감온도</span>
 
         <strong> {{ displayFeelsLike }}{{ configStore.unitSymbol }} </strong>
       </div>
@@ -88,89 +111,102 @@ const handleClickDetail = () => {
       </div>
     </section>
 
-    <section class="activity-info">
-      <div class="activity-summary">
-        <div class="info-item">
-          <span>활동 적합도</span>
+    <el-divider />
 
-          <strong>
-            {{ city.activityScore }}
-            / 100
-          </strong>
+    <section class="activity-section">
+      <div class="activity-heading">
+        <div>
+          <span class="section-label"> ACTIVITY SCORE </span>
+
+          <strong> {{ city.activityScore }} / 100 </strong>
         </div>
 
-        <div class="info-item">
-          <span>판단</span>
-
-          <strong>
-            {{ city.activity }}
-          </strong>
-        </div>
+        <el-tag :type="isRecommended ? 'success' : 'danger'" effect="plain">
+          {{ isRecommended ? '추천' : '기준 미달' }}
+        </el-tag>
       </div>
 
-      <div class="insight-panel">
-        <div class="insight-row">
-          <span class="insight-label"> 추천 </span>
+      <el-progress
+        :percentage="city.activityScore"
+        :stroke-width="10"
+        :show-text="false"
+        :status="activityProgressStatus"
+      />
 
-          <strong class="insight-value">
+      <div class="threshold-row">
+        <span> 현재 추천 기준 </span>
+
+        <strong> {{ configStore.activityScoreThreshold }}점 </strong>
+      </div>
+
+      <p class="activity-judgement">
+        {{ city.activity }}
+      </p>
+
+      <div class="insight-box">
+        <div class="insight-row">
+          <span> 추천 </span>
+
+          <strong>
             {{ city.recommendation }}
           </strong>
         </div>
 
         <div class="insight-row">
-          <span class="insight-label"> 주의 </span>
+          <span> 주의 </span>
 
-          <strong class="insight-value">
+          <strong>
             {{ city.caution }}
           </strong>
         </div>
       </div>
     </section>
 
-    <p v-if="city.apiError" class="api-error">API 조회 실패 · Mock Data 사용</p>
+    <el-alert
+      v-if="city.apiError"
+      title="실시간 API 조회에 실패하여 Mock Data를 표시하고 있습니다."
+      type="warning"
+      :closable="false"
+      show-icon
+      class="api-alert"
+    />
 
-    <section class="recommendation-result">
-      <p
-        v-if="city.activityScore >= configStore.activityScoreThreshold"
-        class="recommendation-message recommended"
-      >
-        👍 현재 기준의 추천 도시
-      </p>
+    <div class="recommendation-state">
+      <span :class="['recommendation-text', isRecommended ? 'recommended' : 'not-recommended']">
+        {{ isRecommended ? '👍 현재 기준의 추천 도시' : '⚠️ 현재 활동 추천 기준 미달' }}
+      </span>
+    </div>
 
-      <p v-else class="recommendation-message not-recommended">⚠️ 현재 활동 추천 기준 미달</p>
-    </section>
-
-    <button class="detail-button" @click.stop="handleClickDetail">상세보기</button>
-  </article>
+    <el-button type="primary" size="large" class="detail-button" @click.stop="handleClickDetail">
+      상세 날씨 보기
+    </el-button>
+  </el-card>
 </template>
 
 <style scoped>
 .weather-card {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 22px;
-  box-sizing: border-box;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
+  height: 100%;
   border-radius: 16px;
   cursor: pointer;
+  transition: transform 0.18s ease;
 }
 
 .weather-card:hover {
-  border-color: #93c5fd;
+  transform: translateY(-2px);
+}
+
+:deep(.el-card__body) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 22px;
 }
 
 .card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-}
-
-.card-header h2 {
-  margin: 4px 0 0;
-  font-size: 24px;
+  gap: 14px;
 }
 
 .region-row {
@@ -180,109 +216,112 @@ const handleClickDetail = () => {
 }
 
 .region {
-  margin: 0;
   font-size: 13px;
-  color: #6b7280;
+  color: #64748b;
 }
 
-.data-source {
-  padding: 3px 6px;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
-}
-
-.data-source.live {
-  background-color: #dcfce7;
-  color: #15803d;
-}
-
-.data-source.mock {
-  background-color: #fef3c7;
-  color: #a16207;
-}
-
-.weather-status {
-  flex-shrink: 0;
-  padding: 6px 10px;
-  background-color: #f3f4f6;
-  border-radius: 999px;
-  font-size: 13px;
+.card-header h2 {
+  margin: 7px 0 0;
+  font-size: 26px;
+  color: #1f2937;
 }
 
 .temperature-section {
-  margin-top: 26px;
+  margin-top: 28px;
 }
 
 .temperature {
-  margin: 0 0 12px;
-  font-size: 42px;
-  font-weight: 700;
+  margin: 0 0 14px;
+  font-size: 44px;
+  font-weight: 750;
+  letter-spacing: -1px;
+  color: #111827;
 }
 
-.temperature-label {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  white-space: nowrap;
+:deep(.el-divider--horizontal) {
+  margin: 20px 0;
 }
 
-.hot {
-  color: #dc2626;
-}
-
-.cool {
-  color: #2563eb;
-}
-
-.basic-weather-info {
-  padding: 16px 0;
-  margin-top: 22px;
-  border-top: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
+.weather-info {
+  display: grid;
+  gap: 10px;
 }
 
 .info-item {
   display: grid;
-  grid-template-columns: 86px minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-  margin: 7px 0;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 12px;
 }
 
 .info-item span {
-  color: #6b7280;
-  white-space: nowrap;
+  color: #64748b;
 }
 
 .info-item strong {
-  min-width: 0;
   text-align: right;
-  line-height: 1.4;
-  word-break: keep-all;
+  color: #1f2937;
 }
 
-.activity-info {
-  padding-top: 16px;
+.activity-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.activity-summary {
-  padding-bottom: 14px;
+.activity-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.insight-panel {
-  padding: 13px 14px;
-  background-color: #f8fafc;
-  border: 1px solid #e5e7eb;
+.activity-heading > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #94a3b8;
+}
+
+.threshold-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 11px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.threshold-row span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.threshold-row strong {
+  color: #2563eb;
+}
+
+.activity-judgement {
+  margin: 0;
+  font-weight: 700;
+  color: #334155;
+}
+
+.insight-box {
+  padding: 14px;
+  background: #f8fafc;
   border-radius: 10px;
 }
 
 .insight-row {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: 10px;
-  align-items: start;
 }
 
 .insight-row + .insight-row {
@@ -291,34 +330,26 @@ const handleClickDetail = () => {
   border-top: 1px solid #e5e7eb;
 }
 
-.insight-label {
-  color: #6b7280;
-  white-space: nowrap;
+.insight-row span {
+  color: #64748b;
 }
 
-.insight-value {
-  min-width: 0;
-  text-align: left;
-  line-height: 1.4;
+.insight-row strong {
+  line-height: 1.45;
   word-break: keep-all;
 }
 
-.api-error {
-  margin: 12px 0 0;
-  color: #a16207;
-  font-size: 12px;
-  font-weight: 700;
+.api-alert {
+  margin-top: 16px;
 }
 
-.recommendation-result {
-  margin-top: 14px;
+.recommendation-state {
+  margin: 16px 0;
 }
 
-.recommendation-message {
-  margin: 0;
+.recommendation-text {
   font-size: 14px;
   font-weight: 700;
-  white-space: nowrap;
 }
 
 .recommended {
@@ -332,20 +363,5 @@ const handleClickDetail = () => {
 .detail-button {
   width: 100%;
   margin-top: auto;
-  padding: 11px 14px;
-  border: none;
-  border-radius: 8px;
-  background-color: #2563eb;
-  color: #ffffff;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.recommendation-result + .detail-button {
-  margin-top: 20px;
-}
-
-.detail-button:hover {
-  background-color: #1d4ed8;
 }
 </style>
