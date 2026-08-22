@@ -7,12 +7,15 @@ const route = useRoute()
 
 const activeMenu = computed(() => {
   if (route.name === 'HikingHome' || route.name === 'MountainDetail') return '/'
+  if (route.name === 'HikingGuide') return '/hiking-guide'
   if (route.name === 'WeatherHome' || route.name === 'WeatherDetail') return '/weather'
-  if (route.name === 'ActivityGuide') return '/activity-guide'
   if (route.name === 'Practice') return '/practice'
-  if (route.name === 'WeatherAbout') return '/about'
-
+  if (route.name === 'About') return '/about'
   return ''
+})
+
+const showUnitToggler = computed(() => {
+  return route.name === 'WeatherHome' || route.name === 'WeatherDetail'
 })
 </script>
 
@@ -21,9 +24,8 @@ const activeMenu = computed(() => {
     <header class="app-header">
       <div class="navigation">
         <div class="brand-area">
-          <RouterLink to="/" class="brand"> HIKING SIGNAL </RouterLink>
-
-          <el-tag size="small" type="success" effect="plain" round> Vue </el-tag>
+          <RouterLink to="/" class="brand">HIKING SIGNAL</RouterLink>
+          <el-tag size="small" type="success" effect="plain" round>Vue</el-tag>
         </div>
 
         <div class="navigation-right">
@@ -34,18 +36,14 @@ const activeMenu = computed(() => {
             :ellipsis="false"
             class="main-menu"
           >
-            <el-menu-item index="/"> 산 찾기 </el-menu-item>
-
-            <el-menu-item index="/weather"> 날씨 </el-menu-item>
-
-            <el-menu-item index="/activity-guide"> Activity Guide </el-menu-item>
-
-            <el-menu-item index="/practice"> Vue Lab </el-menu-item>
-
-            <el-menu-item index="/about"> 소개 </el-menu-item>
+            <el-menu-item index="/">산 찾기</el-menu-item>
+            <el-menu-item index="/hiking-guide">산행 가이드</el-menu-item>
+            <el-menu-item index="/weather">날씨</el-menu-item>
+            <el-menu-item index="/practice">Vue Lab</el-menu-item>
+            <el-menu-item index="/about">소개</el-menu-item>
           </el-menu>
 
-          <UnitToggler />
+          <UnitToggler v-if="showUnitToggler" />
         </div>
       </div>
     </header>

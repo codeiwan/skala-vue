@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('@/views/MountainDetailView.vue'),
     },
     {
+      path: '/hiking-guide',
+      name: 'HikingGuide',
+      component: () => import('@/views/HikingGuideView.vue'),
+    },
+    {
       path: '/weather',
       name: 'WeatherHome',
       component: () => import('@/views/WeatherHomeView.vue'),
@@ -25,24 +30,14 @@ const router = createRouter({
       component: () => import('@/views/WeatherDetailView.vue'),
     },
     {
-      path: '/activity-guide',
-      name: 'ActivityGuide',
-      component: () => import('@/views/ActivityGuideView.vue'),
-    },
-    {
       path: '/practice',
       name: 'Practice',
       component: () => import('@/views/PracticeView.vue'),
     },
     {
       path: '/about',
-      name: 'WeatherAbout',
+      name: 'About',
       component: () => import('@/views/WeatherAboutView.vue'),
-    },
-    {
-      path: '/mountain-api-test',
-      name: 'MountainApiTest',
-      component: () => import('@/views/MountainApiTestView.vue'),
     },
     {
       path: '/:pathMatch(.*)*',
@@ -52,14 +47,8 @@ const router = createRouter({
   ],
 
   scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
-    }
-
-    return {
-      top: 0,
-      left: 0,
-    }
+    if (savedPosition) return savedPosition
+    return { top: 0, left: 0 }
   },
 })
 

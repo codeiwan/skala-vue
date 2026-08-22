@@ -102,8 +102,8 @@ const goBack = () => {
   router.back()
 }
 
-const goHome = () => {
-  router.push('/')
+const goWeatherHome = () => {
+  router.push({ name: 'WeatherHome' })
 }
 </script>
 
@@ -303,7 +303,7 @@ const goHome = () => {
         <div class="detail-actions">
           <el-button size="large" @click="goBack"> 이전 화면 </el-button>
 
-          <el-button type="primary" size="large" @click="goHome"> 메인 대시보드 </el-button>
+          <el-button type="primary" size="large" @click="goWeatherHome"> 날씨 대시보드 </el-button>
         </div>
       </template>
 
@@ -314,7 +314,7 @@ const goHome = () => {
         sub-title="요청한 도시 코드와 일치하는 날씨 데이터가 없습니다."
       >
         <template #extra>
-          <el-button type="primary" @click="goHome"> 메인 대시보드 </el-button>
+          <el-button type="primary" size="large" @click="goWeatherHome"> 날씨 대시보드 </el-button>
         </template>
       </el-result>
     </main>
