@@ -37,16 +37,46 @@ const isExactMatch = (mountain) => {
 <template>
   <div class="hiking-page">
     <main class="hiking-container">
-      <header class="hero">
-        <p class="eyebrow">HIKING SIGNAL</p>
-        <h1>오늘은 어느 산으로 가볼까요?</h1>
-        <p class="hero-description">
-          산림청 공공데이터에서 산 정보를 검색하고, 산행에 필요한 기본 정보와 현재 환경을
-          확인합니다.
-        </p>
-      </header>
+      <section class="search-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">FIND YOUR MOUNTAIN</p>
+          <h1>
+            오늘은 어느 산으로<br />
+            가볼까요?
+          </h1>
 
-      <el-card shadow="never" class="search-card">
+          <p class="hero-description">
+            산 정보를 검색하고 현재 기상과 대기질, 산행 환경 점수까지 한 번에 확인하세요.
+          </p>
+
+          <div class="hero-features">
+            <span>산림청 공공데이터</span>
+            <span>현재 기상</span>
+            <span>대기질</span>
+            <span>Hiking Condition</span>
+          </div>
+        </div>
+
+        <div class="hero-decoration" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="mountain mountain-back"></div>
+          <div class="mountain mountain-front"></div>
+          <div class="ground"></div>
+        </div>
+      </section>
+
+      <el-card shadow="never" class="search-panel">
+        <div class="search-heading">
+          <div>
+            <strong>산 이름으로 검색</strong>
+          </div>
+
+          <div class="source-badge">
+            <span>DATA SOURCE</span>
+            <strong>산림청 산 정보 조회_GW</strong>
+          </div>
+        </div>
+
         <div class="search-area">
           <el-input
             v-model="keyword"
@@ -66,25 +96,19 @@ const isExactMatch = (mountain) => {
           </el-button>
         </div>
 
-        <div class="search-footer">
-          <div class="data-source">
-            <span>산림청 산 정보 조회_GW</span>
-            <el-tag type="success" effect="plain" size="small">공공데이터</el-tag>
-          </div>
+        <div class="quick-search">
+          <span class="quick-label">빠른 검색</span>
 
-          <div class="quick-search">
-            <span>빠른 검색</span>
-
-            <el-button
-              v-for="mountainName in quickSearches"
-              :key="mountainName"
-              size="small"
-              text
-              @click="handleQuickSearch(mountainName)"
-            >
-              {{ mountainName }}
-            </el-button>
-          </div>
+          <el-button
+            v-for="mountainName in quickSearches"
+            :key="mountainName"
+            size="small"
+            plain
+            round
+            @click="handleQuickSearch(mountainName)"
+          >
+            {{ mountainName }}
+          </el-button>
         </div>
       </el-card>
 
@@ -97,16 +121,22 @@ const isExactMatch = (mountain) => {
         class="status-alert"
       />
 
-      <el-alert
-        v-else-if="mountainStore.hasResults"
-        :title="`'${mountainStore.lastSearchedKeyword}' 검색 결과 · ${mountainStore.resultCount}개`"
-        type="success"
-        :closable="false"
-        show-icon
-        class="status-alert"
-      />
-
       <section v-loading="mountainStore.isLoading" class="result-section">
+        <div v-if="mountainStore.hasResults" class="result-heading">
+          <div>
+            <p class="eyebrow">SEARCH RESULT</p>
+            <h2>
+              <strong>{{ mountainStore.lastSearchedKeyword }}</strong>
+              검색 결과
+            </h2>
+          </div>
+
+          <span class="result-count">
+            {{ mountainStore.resultCount }}
+            <small>RESULTS</small>
+          </span>
+        </div>
+
         <div v-if="mountainStore.hasResults" class="mountain-grid">
           <el-card
             v-for="mountain in mountainStore.mountains"
@@ -114,41 +144,43 @@ const isExactMatch = (mountain) => {
             shadow="hover"
             class="mountain-card"
           >
-            <div class="card-header">
-              <div>
-                <div class="mountain-meta">
-                  <span class="mountain-id">{{ mountain.id }}</span>
+            <div class="card-top">
+              <div class="mountain-meta">
+                <span class="mountain-id"># {{ mountain.id }}</span>
 
-                  <el-tag v-if="isExactMatch(mountain)" type="primary" size="small" effect="plain">
-                    정확히 일치
-                  </el-tag>
-                </div>
-
-                <h2>{{ mountain.name }}</h2>
+                <el-tag v-if="isExactMatch(mountain)" type="success" size="small" effect="light">
+                  정확히 일치
+                </el-tag>
               </div>
 
-              <el-tag v-if="mountain.height" type="success" effect="plain">
-                {{ mountain.height }}m
-              </el-tag>
+              <div v-if="mountain.height" class="height-badge">
+                <strong>{{ mountain.height }}</strong>
+                <span>m</span>
+              </div>
             </div>
 
-            <p v-if="mountain.subtitle" class="subtitle">
-              {{ mountain.subtitle }}
-            </p>
-
-            <div class="location">
-              <span class="info-label">소재지</span>
-              <p>{{ mountain.location || '정보 없음' }}</p>
+            <div class="mountain-title">
+              <h3>{{ mountain.name }}</h3>
+              <p v-if="mountain.subtitle">{{ mountain.subtitle }}</p>
             </div>
 
-            <div v-if="mountain.selectionReason" class="summary">
-              <span class="info-label">100대 명산 정보</span>
-              <p>{{ mountain.selectionReason }}</p>
+            <div class="mountain-information">
+              <div class="information-block">
+                <span class="info-label">LOCATION</span>
+                <p>{{ mountain.location || '소재지 정보 없음' }}</p>
+              </div>
+
+              <div v-if="mountain.selectionReason" class="information-block famous-info">
+                <span class="info-label">100대 명산</span>
+                <p>{{ mountain.selectionReason }}</p>
+              </div>
             </div>
 
             <div class="card-footer">
+              <span>산행 정보 확인</span>
+
               <el-button type="primary" plain @click="handleDetail(mountain)">
-                산 정보 자세히 보기
+                자세히 보기 →
               </el-button>
             </div>
           </el-card>
@@ -157,6 +189,7 @@ const isExactMatch = (mountain) => {
         <el-empty
           v-else-if="!mountainStore.isLoading && !mountainStore.errorMessage"
           description="산 이름을 검색하면 결과가 여기에 표시됩니다."
+          class="search-empty"
         />
       </section>
     </main>
@@ -166,128 +199,318 @@ const isExactMatch = (mountain) => {
 <style scoped>
 .hiking-page {
   min-height: 100vh;
-  padding: 52px 24px 72px;
-  background: #f4f7fb;
-  color: #1f2937;
+  padding: 54px 24px 80px;
+  background: var(--color-background);
+  color: var(--color-text);
 }
 .hiking-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--content-width);
   margin: 0 auto;
 }
-.hero {
-  margin-bottom: 26px;
-}
-.eyebrow {
-  margin: 0 0 8px;
-  color: #2563eb;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 1.8px;
-}
-.hero h1 {
-  margin: 0;
-  font-size: 38px;
-  letter-spacing: -1px;
-}
-.hero-description {
-  max-width: 720px;
-  margin: 10px 0 0;
-  color: #64748b;
-  line-height: 1.7;
+
+.search-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  min-height: 390px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-large);
+  background: linear-gradient(135deg, #f8faf6 0%, #edf4ef 58%, #e4eee7 100%);
+  box-shadow: var(--shadow-card);
 }
 
-.search-card {
-  border-radius: 16px;
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  padding: 58px 56px;
 }
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.hero-copy h1 {
+  margin: 0;
+  color: var(--color-primary-deep);
+  font-size: clamp(40px, 5vw, 58px);
+  line-height: 1.12;
+  letter-spacing: -2.2px;
+}
+
+.hero-description {
+  max-width: 580px;
+  margin: 20px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.hero-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+.hero-features span {
+  padding: 7px 11px;
+  border: 1px solid rgba(47, 104, 79, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--color-primary-dark);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hero-decoration {
+  position: relative;
+  min-height: 390px;
+  overflow: hidden;
+}
+
+.sun {
+  position: absolute;
+  top: 58px;
+  right: 78px;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: rgba(196, 135, 49, 0.2);
+}
+
+.mountain {
+  position: absolute;
+  right: -30px;
+  bottom: -115px;
+  transform: rotate(45deg);
+  border-radius: 30px 8px 30px 8px;
+}
+
+.mountain-back {
+  width: 310px;
+  height: 310px;
+  right: -34px;
+  bottom: -157px;
+  background: #9ab3a2;
+}
+.mountain-front {
+  width: 355px;
+  height: 355px;
+  right: 128px;
+  bottom: -194px;
+  background: var(--color-primary-dark);
+}
+
+.ground {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+  background: linear-gradient(180deg, transparent, rgba(23, 58, 45, 0.06));
+}
+
+.search-panel {
+  margin-bottom: 22px;
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-card);
+}
+
+.search-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+.search-heading > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.search-heading strong {
+  color: var(--color-text);
+  font-size: 17px;
+}
+
+.source-badge {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 1px;
+}
+.source-badge span {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+.source-badge strong {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
 .search-area {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
 }
-.search-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  margin-top: 14px;
+.search-area :deep(.el-input__wrapper) {
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 12px;
 }
-.data-source,
-.quick-search,
-.mountain-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.data-source,
-.quick-search {
-  color: #94a3b8;
-  font-size: 13px;
-}
-.quick-search {
-  flex-wrap: wrap;
-  justify-content: flex-end;
+.search-area .el-button {
+  min-width: 112px;
+  min-height: 48px;
+  border-radius: 12px;
+  font-weight: 800;
 }
 
-.status-alert {
-  margin-top: 18px;
+.quick-search {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 15px;
 }
+.quick-label {
+  margin-right: 3px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+.status-alert {
+  margin: 20px 0;
+}
+
 .result-section {
   min-height: 260px;
-  margin-top: 20px;
+  margin-top: 38px;
 }
+
+.result-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+.result-heading h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 26px;
+  letter-spacing: -0.7px;
+}
+.result-heading h2 strong {
+  color: var(--color-primary);
+}
+
+.result-count {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  color: var(--color-primary);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+}
+.result-count small {
+  padding-bottom: 3px;
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+}
+
 .mountain-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 18px;
 }
 .mountain-card {
-  border-radius: 16px;
+  border-radius: var(--radius-medium);
 }
 
-.card-header {
+.card-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
+}
+.mountain-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
 }
 .mountain-id {
-  color: #94a3b8;
-  font-size: 12px;
-  font-weight: 700;
-}
-.card-header h2 {
-  margin: 6px 0 0;
-  font-size: 26px;
-}
-.subtitle {
-  margin: 10px 0 18px;
-  color: #64748b;
-  font-size: 15px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
 }
 
-.location,
-.summary {
-  padding-top: 16px;
-  border-top: 1px solid #e5e7eb;
+.height-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  color: var(--color-primary);
 }
-.summary {
-  margin-top: 16px;
+.height-badge strong {
+  font-size: 23px;
+}
+.height-badge span {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.mountain-title {
+  min-height: 92px;
+  padding: 18px 0;
+}
+.mountain-title h3 {
+  margin: 0;
+  color: var(--color-primary-deep);
+  font-size: 27px;
+  letter-spacing: -0.8px;
+}
+.mountain-title p {
+  margin: 7px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.mountain-information {
+  border-top: 1px solid var(--color-border-soft);
+}
+.information-block {
+  padding: 15px 0;
+}
+.information-block + .information-block {
+  border-top: 1px solid var(--color-border-soft);
 }
 .info-label {
   display: block;
   margin-bottom: 6px;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 800;
+  color: var(--color-primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.1px;
 }
-.location p,
-.summary p {
+.information-block p {
   margin: 0;
-  color: #475569;
+  color: var(--color-text-secondary);
+  font-size: 14px;
   line-height: 1.65;
 }
-.summary p {
+
+.famous-info p {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
@@ -297,30 +520,74 @@ const isExactMatch = (mountain) => {
 
 .card-footer {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 15px;
+  border-top: 1px solid var(--color-border-soft);
+}
+.card-footer > span {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+.card-footer .el-button {
+  border-radius: 9px;
+  font-weight: 700;
+}
+.search-empty {
+  padding: 50px 0;
 }
 
-@media (max-width: 800px) {
-  .search-footer {
+@media (max-width: 900px) {
+  .search-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .hero-decoration {
+    min-height: 230px;
+  }
+  .hero-copy {
+    padding: 44px 38px 18px;
+  }
+  .mountain-front {
+    right: 30%;
+  }
+}
+
+@media (max-width: 650px) {
+  .hiking-page {
+    padding: 34px 16px 58px;
+  }
+  .search-hero {
+    border-radius: 18px;
+  }
+  .hero-copy {
+    padding: 34px 24px 10px;
+  }
+  .hero-copy h1 {
+    font-size: 38px;
+  }
+  .hero-decoration {
+    min-height: 180px;
+  }
+  .hero-features {
+    gap: 6px;
+  }
+  .search-heading,
+  .result-heading {
     align-items: flex-start;
     flex-direction: column;
   }
-  .quick-search {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 600px) {
-  .hiking-page {
-    padding: 34px 16px 52px;
-  }
-  .hero h1 {
-    font-size: 30px;
+  .source-badge {
+    align-items: flex-start;
   }
   .search-area,
   .mountain-grid {
     grid-template-columns: 1fr;
+  }
+  .search-area .el-button {
+    width: 100%;
   }
 }
 </style>

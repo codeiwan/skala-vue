@@ -6,12 +6,11 @@
 
 <style scoped>
 .dashboard-card {
+  margin-bottom: 16px;
   padding: 24px;
-  margin-bottom: 20px;
-
-  background-color: #ffffff;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 </style>

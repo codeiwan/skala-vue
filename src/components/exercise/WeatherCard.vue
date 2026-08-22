@@ -16,6 +16,7 @@ function convertTemperature(celsius) {
   if (configStore.unit === 'fahrenheit') {
     return Math.round((celsius * 9) / 5 + 32)
   }
+
   return celsius
 }
 
@@ -32,14 +33,8 @@ const isRecommended = computed(() => {
 })
 
 const activityProgressStatus = computed(() => {
-  if (props.city.activityScore >= 80) {
-    return 'success'
-  }
-
-  if (props.city.activityScore >= 60) {
-    return 'warning'
-  }
-
+  if (props.city.activityScore >= 80) return 'success'
+  if (props.city.activityScore >= 60) return 'warning'
   return 'exception'
 })
 
@@ -57,9 +52,7 @@ const handleClickDetail = () => {
     <div class="card-header">
       <div>
         <div class="region-row">
-          <span class="region">
-            {{ city.region }}
-          </span>
+          <span class="region">{{ city.region }}</span>
 
           <el-tag
             :type="city.source === 'live' ? 'success' : 'warning'"
@@ -71,9 +64,7 @@ const handleClickDetail = () => {
           </el-tag>
         </div>
 
-        <h2>
-          {{ city.name }}
-        </h2>
+        <h2>{{ city.name }}</h2>
       </div>
 
       <el-tag type="info" effect="plain" round>
@@ -82,43 +73,39 @@ const handleClickDetail = () => {
     </div>
 
     <section class="temperature-section">
-      <p class="temperature">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
+      <span class="section-label">CURRENT TEMPERATURE</span>
 
-      <el-tag v-if="city.temp >= 25" type="danger" effect="light"> 🔥 더움 (25℃ 이상) </el-tag>
+      <div class="temperature-row">
+        <p class="temperature">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
 
-      <el-tag v-else type="primary" effect="light"> ❄️ 선선함 (25℃ 미만) </el-tag>
+        <el-tag v-if="city.temp >= 25" type="danger" effect="light"> 더운 날씨 </el-tag>
+
+        <el-tag v-else type="primary" effect="light"> 선선한 날씨 </el-tag>
+      </div>
     </section>
-
-    <el-divider />
 
     <section class="weather-info">
       <div class="info-item">
         <span>체감온도</span>
-
-        <strong> {{ displayFeelsLike }}{{ configStore.unitSymbol }} </strong>
+        <strong>{{ displayFeelsLike }}{{ configStore.unitSymbol }}</strong>
       </div>
 
       <div class="info-item">
         <span>습도</span>
-
-        <strong> {{ city.humidity }}% </strong>
+        <strong>{{ city.humidity }}%</strong>
       </div>
 
       <div class="info-item">
         <span>풍속</span>
-
-        <strong> {{ city.windSpeed }} m/s </strong>
+        <strong>{{ city.windSpeed }} m/s</strong>
       </div>
     </section>
-
-    <el-divider />
 
     <section class="activity-section">
       <div class="activity-heading">
         <div>
-          <span class="section-label"> ACTIVITY SCORE </span>
-
-          <strong> {{ city.activityScore }} / 100 </strong>
+          <span class="section-label">ACTIVITY SCORE</span>
+          <strong>{{ city.activityScore }} / 100</strong>
         </div>
 
         <el-tag :type="isRecommended ? 'success' : 'danger'" effect="plain">
@@ -134,37 +121,28 @@ const handleClickDetail = () => {
       />
 
       <div class="threshold-row">
-        <span> 현재 추천 기준 </span>
-
-        <strong> {{ configStore.activityScoreThreshold }}점 </strong>
+        <span>내 활동 추천 기준</span>
+        <strong>{{ configStore.activityScoreThreshold }}점</strong>
       </div>
 
-      <p class="activity-judgement">
-        {{ city.activity }}
-      </p>
+      <p class="activity-judgement">{{ city.activity }}</p>
 
       <div class="insight-box">
         <div class="insight-row">
-          <span> 추천 </span>
-
-          <strong>
-            {{ city.recommendation }}
-          </strong>
+          <span>추천</span>
+          <strong>{{ city.recommendation }}</strong>
         </div>
 
         <div class="insight-row">
-          <span> 주의 </span>
-
-          <strong>
-            {{ city.caution }}
-          </strong>
+          <span>주의</span>
+          <strong>{{ city.caution }}</strong>
         </div>
       </div>
     </section>
 
     <el-alert
       v-if="city.apiError"
-      title="실시간 API 조회에 실패하여 Mock Data를 표시하고 있습니다."
+      title="실시간 API 조회에 실패하여 기본 데이터를 표시하고 있어요."
       type="warning"
       :closable="false"
       show-icon
@@ -173,12 +151,12 @@ const handleClickDetail = () => {
 
     <div class="recommendation-state">
       <span :class="['recommendation-text', isRecommended ? 'recommended' : 'not-recommended']">
-        {{ isRecommended ? '👍 현재 기준의 추천 도시' : '⚠️ 현재 활동 추천 기준 미달' }}
+        {{ isRecommended ? '현재 기준의 추천 도시' : '현재 활동 추천 기준 미달' }}
       </span>
     </div>
 
     <el-button type="primary" size="large" class="detail-button" @click.stop="handleClickDetail">
-      상세 날씨 보기
+      상세 날씨 보기 →
     </el-button>
   </el-card>
 </template>
@@ -186,20 +164,16 @@ const handleClickDetail = () => {
 <style scoped>
 .weather-card {
   height: 100%;
-  border-radius: 16px;
+  overflow: hidden;
+  border-radius: var(--radius-medium);
   cursor: pointer;
-  transition: transform 0.18s ease;
-}
-
-.weather-card:hover {
-  transform: translateY(-2px);
 }
 
 :deep(.el-card__body) {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 22px;
+  padding: 23px;
 }
 
 .card-header {
@@ -216,56 +190,86 @@ const handleClickDetail = () => {
 }
 
 .region {
-  font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-secondary);
+  font-size: 12px;
 }
 
 .card-header h2 {
-  margin: 7px 0 0;
-  font-size: 26px;
-  color: #1f2937;
+  margin: 6px 0 0;
+  color: var(--color-primary-deep);
+  font-size: 27px;
+  letter-spacing: -0.7px;
+}
+
+.section-label {
+  color: var(--color-primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.1px;
 }
 
 .temperature-section {
-  margin-top: 28px;
+  margin-top: 26px;
+  padding: 20px 0;
+  border-top: 1px solid var(--color-border-soft);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.temperature-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 5px;
 }
 
 .temperature {
-  margin: 0 0 14px;
+  margin: 0;
+  color: var(--color-primary-deep);
   font-size: 44px;
-  font-weight: 750;
-  letter-spacing: -1px;
-  color: #111827;
-}
-
-:deep(.el-divider--horizontal) {
-  margin: 20px 0;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1.5px;
 }
 
 .weather-info {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0;
 }
 
 .info-item {
-  display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 2px 12px;
+  border-right: 1px solid var(--color-border-soft);
+}
+
+.info-item:first-child {
+  padding-left: 0;
+}
+.info-item:last-child {
+  padding-right: 0;
+  border-right: none;
 }
 
 .info-item span {
-  color: #64748b;
+  color: var(--color-text-muted);
+  font-size: 10px;
 }
 
 .info-item strong {
-  text-align: right;
-  color: #1f2937;
+  color: var(--color-text);
+  font-size: 14px;
 }
 
 .activity-section {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 13px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .activity-heading {
@@ -277,15 +281,13 @@ const handleClickDetail = () => {
 
 .activity-heading > div {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.section-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #94a3b8;
+.activity-heading strong {
+  color: var(--color-primary-deep);
+  font-size: 18px;
 }
 
 .threshold-row {
@@ -293,49 +295,55 @@ const handleClickDetail = () => {
   align-items: center;
   justify-content: space-between;
   padding: 9px 11px;
-  background: #f8fafc;
   border-radius: 8px;
+  background: var(--color-primary-softer);
 }
 
 .threshold-row span {
-  font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-secondary);
+  font-size: 11px;
 }
 
 .threshold-row strong {
-  color: #2563eb;
+  color: var(--color-primary);
+  font-size: 12px;
 }
 
 .activity-judgement {
   margin: 0;
-  font-weight: 700;
-  color: #334155;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .insight-box {
   padding: 14px;
-  background: #f8fafc;
   border-radius: 10px;
+  background: var(--color-surface-soft);
 }
 
 .insight-row {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 42px minmax(0, 1fr);
   gap: 10px;
 }
 
 .insight-row + .insight-row {
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .insight-row span {
-  color: #64748b;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .insight-row strong {
-  line-height: 1.45;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
   word-break: keep-all;
 }
 
@@ -344,24 +352,42 @@ const handleClickDetail = () => {
 }
 
 .recommendation-state {
-  margin: 16px 0;
+  margin-top: auto;
+  padding-top: 17px;
 }
 
 .recommendation-text {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .recommended {
-  color: #2563eb;
+  color: var(--color-success);
 }
-
 .not-recommended {
-  color: #dc2626;
+  color: var(--color-warning);
 }
 
 .detail-button {
   width: 100%;
-  margin-top: auto;
+  margin-top: 12px;
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+@media (max-width: 420px) {
+  .weather-info {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item {
+    padding: 8px 0;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+
+  .info-item:last-child {
+    border-bottom: none;
+  }
 }
 </style>

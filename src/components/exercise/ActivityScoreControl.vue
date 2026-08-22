@@ -34,20 +34,20 @@ const handleScoreChange = (value) => {
   <section class="activity-control">
     <div class="control-heading">
       <div>
-        <p class="control-title">Activity Insight 추천 기준</p>
+        <p class="control-label">ACTIVITY PREFERENCE</p>
+        <h3>활동 추천 기준</h3>
 
         <p class="control-description">
           활동 적합도가
-          <strong>
-            {{ configStore.activityThresholdLabel }}
-          </strong>
-          인 도시를 추천 대상으로 판단합니다.
+          <strong>{{ configStore.activityThresholdLabel }}</strong>
+          인 도시를 추천 대상으로 보고 있어요.
         </p>
       </div>
 
-      <el-tag type="success" effect="light" round size="large">
-        추천 {{ recommendedCityCount }}개
-      </el-tag>
+      <div class="recommended-count">
+        <strong>{{ recommendedCityCount }}</strong>
+        <span>추천 도시</span>
+      </div>
     </div>
 
     <el-segmented
@@ -60,8 +60,7 @@ const handleScoreChange = (value) => {
 
     <div class="threshold-guide">
       <span>현재 추천 기준</span>
-
-      <strong> {{ configStore.activityScoreThreshold }} / 100 </strong>
+      <strong>{{ configStore.activityScoreThreshold }} / 100</strong>
     </div>
   </section>
 </template>
@@ -76,23 +75,51 @@ const handleScoreChange = (value) => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
-.control-title {
+.control-label {
+  margin: 0 0 5px;
+  color: var(--color-primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.3px;
+}
+
+.control-heading h3 {
   margin: 0;
-  font-weight: 700;
-  color: #1f2937;
+  color: var(--color-primary-deep);
+  font-size: 18px;
 }
 
 .control-description {
   margin: 8px 0 0;
-  color: #64748b;
-  line-height: 1.5;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
 }
 
 .control-description strong {
-  color: #2563eb;
+  color: var(--color-primary);
+}
+
+.recommended-count {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.recommended-count strong {
+  color: var(--color-primary);
+  font-size: 30px;
+  line-height: 1;
+}
+
+.recommended-count span {
+  margin-top: 3px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .score-segmented {
@@ -105,23 +132,27 @@ const handleScoreChange = (value) => {
   justify-content: space-between;
   margin-top: 14px;
   padding: 11px 14px;
-  background: #f8fafc;
   border-radius: 9px;
+  background: var(--color-primary-softer);
 }
 
 .threshold-guide span {
+  color: var(--color-text-secondary);
   font-size: 13px;
-  color: #64748b;
 }
 
 .threshold-guide strong {
-  color: #2563eb;
+  color: var(--color-primary);
 }
 
 @media (max-width: 600px) {
   .control-heading {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+  }
+
+  .recommended-count {
+    align-items: flex-start;
   }
 }
 </style>

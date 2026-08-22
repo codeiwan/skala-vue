@@ -17,9 +17,9 @@ const handleInput = (value) => {
   <section class="search-control">
     <div class="control-heading">
       <div>
-        <p class="control-title">도시 검색</p>
-
-        <p class="control-description">전국 주요 도시의 실시간 날씨를 검색합니다.</p>
+        <p class="control-label">CITY SEARCH</p>
+        <h3>도시 검색</h3>
+        <p class="control-description">전국 주요 도시의 현재 날씨를 찾아볼 수 있어요.</p>
       </div>
 
       <el-tag type="info" effect="plain">
@@ -51,16 +51,29 @@ const handleInput = (value) => {
   margin-bottom: 16px;
 }
 
-.control-title {
+.control-label {
+  margin: 0 0 5px;
+  color: var(--color-primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.3px;
+}
+
+.control-heading h3 {
   margin: 0;
-  font-weight: 700;
-  color: #1f2937;
+  color: var(--color-primary-deep);
+  font-size: 18px;
 }
 
 .control-description {
   margin: 7px 0 0;
+  color: var(--color-text-secondary);
   font-size: 13px;
-  color: #64748b;
+}
+
+:deep(.el-input__wrapper) {
+  min-height: 46px;
+  border-radius: 11px;
 }
 
 @media (max-width: 600px) {

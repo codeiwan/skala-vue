@@ -104,7 +104,6 @@ const practiceGroups = [
       },
     ],
   },
-
   {
     id: 'directive',
     title: 'Vue Directive',
@@ -164,7 +163,6 @@ const practiceGroups = [
       },
     ],
   },
-
   {
     id: 'rendering',
     title: '조건부 & 반복 렌더링',
@@ -194,7 +192,6 @@ const practiceGroups = [
       },
     ],
   },
-
   {
     id: 'event',
     title: 'Event Handling',
@@ -224,7 +221,6 @@ const practiceGroups = [
       },
     ],
   },
-
   {
     id: 'form',
     title: 'Form & Style',
@@ -261,7 +257,6 @@ const practiceGroups = [
       },
     ],
   },
-
   {
     id: 'reactivity',
     title: 'Composition API',
@@ -291,7 +286,6 @@ const practiceGroups = [
       },
     ],
   },
-
   {
     id: 'watchers',
     title: 'Watchers',
@@ -335,7 +329,6 @@ const practiceGroups = [
       },
     ],
   },
-
   {
     id: 'component',
     title: 'Vue Components',
@@ -358,7 +351,6 @@ const practiceGroups = [
       },
     ],
   },
-
   {
     id: 'slot',
     title: 'Component Slot',
@@ -389,7 +381,6 @@ const practiceGroups = [
       },
     ],
   },
-
   {
     id: 'library',
     title: 'State · API · UI Library',
@@ -475,7 +466,6 @@ const movePractice = (direction) => {
   )
 
   const currentIndex = flattened.findIndex((item) => item.practice.id === activePractice.value.id)
-
   const targetIndex = currentIndex + direction
 
   if (targetIndex < 0 || targetIndex >= flattened.length) {
@@ -492,27 +482,30 @@ const movePractice = (direction) => {
 <template>
   <div class="practice-page">
     <main class="practice-container">
-      <!-- Header -->
-      <header class="practice-header">
+      <section class="practice-hero">
         <div>
           <p class="eyebrow">VUE LEARNING LAB</p>
 
-          <h1>Vue Practice Playground</h1>
+          <h1>
+            수업에서 배운 Vue 기능을<br />
+            직접 실행하며 확인해요.
+          </h1>
 
-          <p class="description">
-            강의에서 배운 Vue 핵심 기능을 직접 실행하고 다시 확인할 수 있는 개인 학습 공간입니다.
+          <p class="hero-description">
+            기본 문법부터 Composition API, Component, Pinia와 Axios까지 강의에서 실습한 내용을
+            하나씩 선택해 다시 확인할 수 있어요.
           </p>
         </div>
 
-        <div class="header-statistics">
-          <el-statistic title="학습 Section" :value="practiceGroups.length" />
-
-          <el-statistic title="Practice" :value="totalPracticeCount" />
+        <div class="lab-status">
+          <span>LEARNING SPACE</span>
+          <strong>{{ totalPracticeCount }}</strong>
+          <small>Vue Practices</small>
         </div>
-      </header>
+      </section>
 
       <el-alert
-        title="각 Practice는 한 번에 하나씩 실행됩니다. 버튼과 입력창을 직접 조작하고 필요한 예제에서는 Browser Console도 함께 확인하세요."
+        title="Practice는 한 번에 하나씩 실행돼요. 버튼과 입력창을 직접 조작하고 필요한 예제에서는 Browser Console도 함께 확인해 보세요."
         type="info"
         :closable="false"
         show-icon
@@ -520,23 +513,24 @@ const movePractice = (direction) => {
       />
 
       <div class="practice-layout">
-        <!-- Left Navigation -->
         <aside class="practice-sidebar">
-          <el-card shadow="never" class="navigation-card">
-            <template #header>
-              <div class="sidebar-heading">
-                <span>Learning Map</span>
-
-                <el-tag type="primary" effect="plain" size="small" round>
-                  {{ activePracticeNumber }} / {{ totalPracticeCount }}
-                </el-tag>
+          <section class="navigation-card">
+            <div class="sidebar-heading">
+              <div>
+                <p class="eyebrow">LEARNING MAP</p>
+                <h2>학습 영역</h2>
               </div>
-            </template>
+
+              <el-tag type="success" effect="plain" round>
+                {{ activePracticeNumber }} / {{ totalPracticeCount }}
+              </el-tag>
+            </div>
 
             <div class="group-list">
               <button
                 v-for="group in practiceGroups"
                 :key="group.id"
+                type="button"
                 :class="[
                   'group-button',
                   {
@@ -545,82 +539,75 @@ const movePractice = (direction) => {
                 ]"
                 @click="selectGroup(group)"
               >
-                <span>
-                  {{ group.title }}
-                </span>
+                <div>
+                  <strong>{{ group.title }}</strong>
+                  <span>{{ group.subtitle }}</span>
+                </div>
 
-                <small>
-                  {{ group.practices.length }}
-                </small>
+                <small>{{ group.practices.length }}</small>
               </button>
             </div>
-          </el-card>
+          </section>
         </aside>
 
-        <!-- Main Content -->
         <section class="practice-main">
-          <!-- Group Description -->
-          <el-card shadow="never" class="group-card">
+          <section class="group-card">
             <div class="group-heading">
               <div>
-                <p class="section-label">
-                  {{ activeGroup.subtitle }}
-                </p>
+                <p class="eyebrow">CURRENT TOPIC</p>
+                <span class="section-label">{{ activeGroup.subtitle }}</span>
 
-                <h2>
-                  {{ activeGroup.title }}
-                </h2>
+                <h2>{{ activeGroup.title }}</h2>
 
-                <p>
-                  {{ activeGroup.description }}
-                </p>
+                <p>{{ activeGroup.description }}</p>
               </div>
 
-              <el-tag type="info" effect="plain" round>
-                {{ activeGroup.practices.length }} Practices
+              <el-tag type="success" effect="plain">
+                {{ activeGroup.practices.length }} PRACTICES
               </el-tag>
             </div>
 
             <div class="practice-selector">
-              <el-button
+              <button
                 v-for="practice in activeGroup.practices"
                 :key="practice.id"
-                :type="practice.id === activePracticeId ? 'primary' : ''"
-                :plain="practice.id !== activePracticeId"
+                type="button"
+                :class="[
+                  'practice-tab',
+                  {
+                    active: practice.id === activePracticeId,
+                  },
+                ]"
                 @click="selectPractice(practice)"
               >
-                {{ practice.shortTitle }}
-              </el-button>
+                <strong>{{ practice.shortTitle }}</strong>
+                <span>{{ practice.title }}</span>
+              </button>
             </div>
-          </el-card>
+          </section>
 
-          <!-- Current Practice -->
-          <el-card shadow="never" class="stage-card">
-            <template #header>
-              <div class="stage-header">
-                <div>
-                  <div class="stage-title-row">
-                    <span class="practice-number">
-                      {{ String(activePracticeNumber).padStart(2, '0') }}
-                    </span>
+          <section class="stage-card">
+            <div class="stage-header">
+              <div>
+                <p class="eyebrow">LIVE PRACTICE</p>
 
-                    <h2>
-                      {{ activePractice.title }}
-                    </h2>
+                <div class="stage-title-row">
+                  <span class="practice-number">
+                    {{ String(activePracticeNumber).padStart(2, '0') }}
+                  </span>
 
-                    <el-tag v-if="activePractice.warning" type="warning" size="small">
-                      Security Demo
-                    </el-tag>
-                  </div>
+                  <h2>{{ activePractice.title }}</h2>
 
-                  <p>
-                    {{ activePractice.description }}
-                  </p>
+                  <el-tag v-if="activePractice.warning" type="warning" size="small">
+                    Security Demo
+                  </el-tag>
                 </div>
 
-                <el-tag type="success" effect="plain"> LIVE PRACTICE </el-tag>
+                <p>{{ activePractice.description }}</p>
               </div>
-            </template>
+
+              <el-tag type="success" effect="plain"> Vue Example </el-tag>
+            </div>
 
             <el-alert
               v-if="activePractice.warning"
@@ -631,11 +618,6 @@ const movePractice = (direction) => {
               class="practice-warning"
             />
 
-            <!--
-              선택한 Practice 하나만 실제 Mount한다.
-              따라서 Lifecycle / Watcher / Axios 예제가
-              불필요하게 동시에 실행되지 않는다.
-            -->
             <div :key="activePractice.id" class="practice-stage">
               <component :is="activePractice.component" />
             </div>
@@ -659,9 +641,22 @@ const movePractice = (direction) => {
                 다음 Practice
               </el-button>
             </div>
-          </el-card>
+          </section>
         </section>
       </div>
+
+      <section class="lab-note">
+        <div>
+          <p class="eyebrow">WHY THIS PAGE EXISTS</p>
+          <h2>완성된 서비스와 학습 과정을 함께 남겼어요.</h2>
+
+          <p>
+            Hiking Signal은 Vue 강의에서 배운 내용을 실제 서비스에 적용하며 발전시킨 프로젝트예요.
+            Vue Lab에는 강의에서 직접 실행했던 예제를 따로 남겨, 기본 문법부터 외부 Library 활용까지
+            학습 흐름을 다시 확인할 수 있도록 했어요.
+          </p>
+        </div>
+      </section>
     </main>
   </div>
 </template>
@@ -669,50 +664,73 @@ const movePractice = (direction) => {
 <style scoped>
 .practice-page {
   min-height: 100vh;
-  padding: 48px 24px 64px;
-  background: #f4f7fb;
-  color: #1f2937;
+  padding: 46px 24px 80px;
+  background: var(--color-background);
+  color: var(--color-text);
 }
 
 .practice-container {
   width: 100%;
-  max-width: 1400px;
+  max-width: var(--content-width-wide);
   margin: 0 auto;
-}
-
-.practice-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 32px;
-  margin-bottom: 24px;
 }
 
 .eyebrow {
   margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: #2563eb;
+  color: var(--color-primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.6px;
 }
 
-.practice-header h1 {
-  margin: 0;
-  font-size: 38px;
-  letter-spacing: -0.8px;
-}
-
-.description {
-  max-width: 720px;
-  margin: 10px 0 0;
-  color: #64748b;
-  line-height: 1.65;
-}
-
-.header-statistics {
+.practice-hero {
   display: flex;
-  gap: 34px;
-  flex-shrink: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 42px;
+  margin-bottom: 24px;
+  padding: 44px 48px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-large);
+  background: linear-gradient(135deg, #f8faf6 0%, #e6eee7 100%);
+}
+
+.practice-hero h1 {
+  margin: 0;
+  color: var(--color-primary-deep);
+  font-size: clamp(38px, 5vw, 52px);
+  line-height: 1.18;
+  letter-spacing: -1.8px;
+}
+
+.hero-description {
+  max-width: 760px;
+  margin: 15px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.lab-status {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  min-width: 150px;
+}
+
+.lab-status > span,
+.lab-status > small {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+
+.lab-status strong {
+  margin: 4px 0;
+  color: var(--color-primary);
+  font-size: 46px;
+  line-height: 1;
 }
 
 .guide-alert {
@@ -721,67 +739,117 @@ const movePractice = (direction) => {
 
 .practice-layout {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
   align-items: start;
 }
 
 .practice-sidebar {
   position: sticky;
-  top: 86px;
+  top: 92px;
 }
 
 .navigation-card,
 .group-card,
 .stage-card {
-  border-radius: 16px;
-}
-
-.sidebar-heading,
-.group-heading,
-.stage-header,
-.practice-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .sidebar-heading {
-  font-weight: 700;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 23px 21px 18px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.sidebar-heading h2 {
+  margin: 0;
+  color: var(--color-primary-deep);
+  font-size: 20px;
 }
 
 .group-list {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
 }
 
 .group-button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 14px;
   width: 100%;
-  padding: 11px 12px;
+  padding: 16px 19px;
   border: 0;
-  border-radius: 8px;
+  border-bottom: 1px solid var(--color-border-soft);
   background: transparent;
-  color: #475569;
+  color: inherit;
   text-align: left;
-  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
+.group-button:last-child {
+  border-bottom: none;
+}
 .group-button:hover {
-  background: #f8fafc;
+  background: var(--color-primary-softer);
+}
+.group-button.active {
+  background: var(--color-primary-soft);
 }
 
-.group-button.active {
-  background: #eff6ff;
-  color: #2563eb;
-  font-weight: 700;
+.group-button > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.group-button strong {
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.group-button.active strong {
+  color: var(--color-primary-deep);
+}
+
+.group-button span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .group-button small {
-  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.group-button.active small {
+  background: var(--color-primary);
+  color: #ffffff;
 }
 
 .practice-main {
@@ -789,117 +857,228 @@ const movePractice = (direction) => {
 }
 
 .group-card {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
+  padding: 27px 29px;
 }
 
 .group-heading {
+  display: flex;
   align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .section-label {
-  margin: 0 0 6px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 1.3px;
-  color: #2563eb;
+  display: block;
+  margin-bottom: 5px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .group-heading h2 {
   margin: 0;
-  font-size: 24px;
+  color: var(--color-primary-deep);
+  font-size: 25px;
+  letter-spacing: -0.6px;
 }
 
-.group-heading p {
+.group-heading > div > p:last-child {
+  max-width: 720px;
   margin: 8px 0 0;
-  color: #64748b;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.65;
 }
 
 .practice-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 9px;
+  margin-top: 22px;
+}
+
+.practice-tab {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 20px;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 72px;
+  padding: 13px 15px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: inherit;
+  text-align: left;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.practice-tab:hover {
+  transform: translateY(-1px);
+  border-color: #c7d6cb;
+}
+
+.practice-tab.active {
+  border-color: rgba(47, 104, 79, 0.35);
+  background: var(--color-primary-softer);
+}
+
+.practice-tab strong {
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.practice-tab.active strong {
+  color: var(--color-primary-deep);
+}
+
+.practice-tab span {
+  color: var(--color-text-muted);
+  font-size: 9px;
+}
+
+.stage-card {
+  padding: 0;
 }
 
 .stage-header {
+  display: flex;
   align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-surface-soft);
 }
 
 .stage-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 9px;
 }
 
 .stage-title-row h2 {
   margin: 0;
-  font-size: 24px;
+  color: var(--color-primary-deep);
+  font-size: 21px;
 }
 
 .practice-number {
-  color: #94a3b8;
-  font-size: 13px;
-  font-weight: 800;
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 900;
 }
 
-.stage-header p {
-  margin: 8px 0 0;
-  color: #64748b;
+.stage-header > div > p:last-child {
+  margin: 7px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.6;
 }
 
 .practice-warning {
-  margin-bottom: 18px;
+  margin: 20px 28px 0;
 }
 
 .practice-stage {
-  min-height: 300px;
+  min-height: 340px;
+  margin: 24px 28px 0;
   padding: 24px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
   overflow-x: auto;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: #ffffff;
 }
 
 .practice-footer {
-  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 28px 24px;
 }
 
 .practice-footer span {
-  color: #94a3b8;
-  font-size: 13px;
+  color: var(--color-text-muted);
+  font-size: 12px;
   font-weight: 700;
 }
 
-@media (max-width: 900px) {
-  .practice-header {
-    flex-direction: column;
-  }
+.lab-note {
+  margin-top: 42px;
+  padding: 34px 38px;
+  border-radius: var(--radius-large);
+  background: var(--color-primary-deep);
+}
 
+.lab-note .eyebrow {
+  color: #9fbeaa;
+}
+
+.lab-note h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 25px;
+  letter-spacing: -0.7px;
+}
+
+.lab-note p:last-child {
+  max-width: 820px;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+@media (max-width: 900px) {
   .practice-layout {
     grid-template-columns: 1fr;
   }
-
   .practice-sidebar {
     position: static;
   }
 
   .group-list {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .group-button:nth-last-child(2) {
+    border-bottom: none;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
   .practice-page {
-    padding: 32px 16px 48px;
+    padding: 30px 16px 58px;
   }
 
-  .practice-header h1 {
-    font-size: 30px;
+  .practice-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 34px 25px;
   }
 
-  .header-statistics {
-    width: 100%;
-    justify-content: space-between;
+  .practice-hero h1 {
+    font-size: 36px;
+  }
+  .lab-status {
+    align-items: flex-start;
+  }
+
+  .group-list {
+    grid-template-columns: 1fr;
+  }
+
+  .group-button {
+    border-bottom: 1px solid var(--color-border-soft) !important;
+  }
+
+  .group-button:last-child {
+    border-bottom: none !important;
   }
 
   .group-heading,
@@ -907,12 +1086,21 @@ const movePractice = (direction) => {
     flex-direction: column;
   }
 
+  .practice-selector {
+    grid-template-columns: 1fr;
+  }
+
   .practice-stage {
-    padding: 14px;
+    margin: 20px 18px 0;
+    padding: 18px;
   }
 
   .practice-footer {
-    gap: 8px;
+    padding: 18px;
+  }
+
+  .lab-note {
+    padding: 29px 24px;
   }
 }
 </style>

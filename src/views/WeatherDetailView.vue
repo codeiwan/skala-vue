@@ -10,6 +10,7 @@ const route = useRoute()
 const router = useRouter()
 const configStore = useConfigStore()
 const weatherStore = useWeatherStore()
+
 const cityId = route.params.cityId
 const airQuality = ref(null)
 const isLoading = ref(false)
@@ -28,18 +29,12 @@ function convertTemperature(celsius) {
 }
 
 const displayTemp = computed(() => {
-  if (!city.value) {
-    return null
-  }
-
+  if (!city.value) return null
   return convertTemperature(city.value.temp)
 })
 
 const displayFeelsLike = computed(() => {
-  if (!city.value) {
-    return null
-  }
-
+  if (!city.value) return null
   return convertTemperature(city.value.feelsLike)
 })
 
@@ -66,10 +61,7 @@ const aqiType = computed(() => {
 })
 
 const detailInsight = computed(() => {
-  if (!city.value) {
-    return null
-  }
-
+  if (!city.value) return null
   return createActivityInsight(city.value, airQuality.value)
 })
 
@@ -80,15 +72,12 @@ const loadDetailWeather = async () => {
   try {
     const updatedCity = await weatherStore.fetchCityWeather(cityId)
 
-    if (updatedCity?.lat == null || updatedCity?.lon == null) {
-      return
-    }
+    if (updatedCity?.lat == null || updatedCity?.lon == null) return
 
     try {
       airQuality.value = await fetchAirPollution(updatedCity.lat, updatedCity.lon)
     } catch (error) {
       airError.value = getWeatherErrorMessage(error)
-
       console.error('[Air Pollution API] 조회 실패:', error)
     }
   } finally {
@@ -115,189 +104,182 @@ const goWeatherHome = () => {
   >
     <main class="detail-container">
       <template v-if="city">
-        <el-page-header content="날씨 상세 정보" class="page-header" @back="goBack" />
+        <el-page-header
+          title="날씨 대시보드"
+          content="날씨 상세 정보"
+          class="page-header"
+          @back="goBack"
+        />
 
-        <el-card shadow="never" class="hero-card">
-          <div class="detail-header">
-            <div>
-              <p class="eyebrow">WEATHER DETAIL</p>
+        <section class="weather-hero">
+          <div>
+            <p class="eyebrow">WEATHER DETAIL</p>
+            <p class="region">{{ city.region }}</p>
 
-              <div class="city-heading">
+            <div class="city-heading">
+              <h1>{{ city.name }}</h1>
+
+              <el-tag :type="city.source === 'live' ? 'success' : 'warning'" effect="dark" round>
+                {{ city.source === 'live' ? 'LIVE DATA' : 'MOCK FALLBACK' }}
+              </el-tag>
+            </div>
+
+            <p class="detail-description">
+              현재 날씨와 대기질, 야외활동 환경을 한 화면에서 확인해 보세요.
+            </p>
+          </div>
+
+          <div class="hero-weather">
+            <span>CURRENT</span>
+            <strong>{{ displayTemp }}{{ configStore.unitSymbol }}</strong>
+            <small>체감 {{ displayFeelsLike }}{{ configStore.unitSymbol }}</small>
+
+            <el-tag type="info" effect="plain" round>
+              {{ city.status }}
+            </el-tag>
+          </div>
+        </section>
+
+        <div class="detail-grid">
+          <el-card shadow="never" class="section-card">
+            <template #header>
+              <div class="section-header">
                 <div>
-                  <p class="region">
-                    {{ city.region }}
-                  </p>
-
-                  <h1>
-                    {{ city.name }}
-                  </h1>
+                  <span class="section-label">CURRENT CONDITIONS</span>
+                  <strong>현재 기상 관측</strong>
                 </div>
 
-                <el-tag :type="city.source === 'live' ? 'success' : 'warning'" effect="dark" round>
-                  {{ city.source === 'live' ? 'LIVE DATA' : 'MOCK FALLBACK' }}
+                <el-tag type="success" effect="plain"> OpenWeatherMap </el-tag>
+              </div>
+            </template>
+
+            <el-descriptions :column="2" border direction="vertical">
+              <el-descriptions-item label="습도"> {{ city.humidity }}% </el-descriptions-item>
+
+              <el-descriptions-item label="풍속"> {{ city.windSpeed }} m/s </el-descriptions-item>
+
+              <el-descriptions-item label="기압"> {{ city.pressure }} hPa </el-descriptions-item>
+
+              <el-descriptions-item label="운량"> {{ city.cloudiness }}% </el-descriptions-item>
+
+              <el-descriptions-item label="가시거리">
+                {{ city.visibility ? `${(city.visibility / 1000).toFixed(1)} km` : '정보 없음' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="날씨 상태">
+                {{ city.status }}
+              </el-descriptions-item>
+            </el-descriptions>
+          </el-card>
+
+          <el-card shadow="never" class="section-card">
+            <template #header>
+              <div class="section-header">
+                <div>
+                  <span class="section-label">AIR QUALITY</span>
+                  <strong>현재 대기질</strong>
+                </div>
+
+                <el-tag :type="aqiType" effect="light" round>
+                  AQI {{ airQuality?.aqi ?? '-' }} · {{ aqiLabel }}
+                </el-tag>
+              </div>
+            </template>
+
+            <div v-if="airQuality" class="air-grid">
+              <div class="statistic-box">
+                <el-statistic title="PM2.5" :value="airQuality.pm25" :precision="1" />
+                <span>μg/m³</span>
+              </div>
+
+              <div class="statistic-box">
+                <el-statistic title="PM10" :value="airQuality.pm10" :precision="1" />
+                <span>μg/m³</span>
+              </div>
+
+              <div class="statistic-box">
+                <el-statistic title="NO₂" :value="airQuality.no2" :precision="1" />
+                <span>μg/m³</span>
+              </div>
+
+              <div class="statistic-box">
+                <el-statistic title="O₃" :value="airQuality.o3" :precision="1" />
+                <span>μg/m³</span>
+              </div>
+            </div>
+
+            <el-alert
+              v-else-if="airError"
+              :title="airError"
+              type="warning"
+              :closable="false"
+              show-icon
+            />
+
+            <el-empty v-else description="대기질 정보가 없습니다." />
+          </el-card>
+        </div>
+
+        <el-card v-if="detailInsight" shadow="never" class="insight-card">
+          <div class="insight-layout">
+            <div class="insight-score">
+              <span>ACTIVITY SCORE</span>
+              <strong>{{ detailInsight.activityScore }}</strong>
+              <small>/ 100</small>
+            </div>
+
+            <div class="insight-content">
+              <div class="section-header">
+                <div>
+                  <span class="section-label">ACTIVITY INSIGHT</span>
+                  <strong>{{ detailInsight.activity }}</strong>
+                </div>
+
+                <el-tag
+                  :type="
+                    detailInsight.activityScore >= configStore.activityScoreThreshold
+                      ? 'success'
+                      : 'danger'
+                  "
+                >
+                  {{
+                    detailInsight.activityScore >= configStore.activityScoreThreshold
+                      ? '내 기준 충족'
+                      : '내 기준 미달'
+                  }}
                 </el-tag>
               </div>
 
-              <p class="detail-description">
-                OpenWeatherMap의 현재 날씨와 대기질 데이터를 기반으로 한 상세 기상 정보입니다.
-              </p>
-            </div>
-
-            <el-tag type="info" effect="plain" size="large" round>
-              {{ city.status }}
-            </el-tag>
-          </div>
-        </el-card>
-
-        <el-card shadow="never" class="temperature-card">
-          <div class="temperature-content">
-            <div>
-              <span class="metric-label"> CURRENT TEMPERATURE </span>
-
-              <p class="detail-temperature">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
-
-              <p class="feels-like">
-                체감온도
-                {{ displayFeelsLike }}{{ configStore.unitSymbol }}
-              </p>
-            </div>
-
-            <el-tag :type="city.temp >= 25 ? 'danger' : 'primary'" size="large" effect="dark">
-              {{ city.temp >= 25 ? '🔥 더운 날씨' : '❄️ 선선한 날씨' }}
-            </el-tag>
-          </div>
-        </el-card>
-
-        <el-card shadow="never" class="section-card">
-          <template #header>
-            <div class="section-header">
-              <div>
-                <span class="section-label"> CURRENT CONDITIONS </span>
-
-                <strong> 현재 기상 관측 </strong>
-              </div>
-
-              <el-tag type="success" effect="plain"> OpenWeatherMap </el-tag>
-            </div>
-          </template>
-
-          <el-descriptions :column="3" border direction="vertical">
-            <el-descriptions-item label="습도"> {{ city.humidity }}% </el-descriptions-item>
-
-            <el-descriptions-item label="풍속"> {{ city.windSpeed }} m/s </el-descriptions-item>
-
-            <el-descriptions-item label="기압"> {{ city.pressure }} hPa </el-descriptions-item>
-
-            <el-descriptions-item label="운량"> {{ city.cloudiness }}% </el-descriptions-item>
-
-            <el-descriptions-item label="가시거리">
-              {{ city.visibility ? `${(city.visibility / 1000).toFixed(1)} km` : '정보 없음' }}
-            </el-descriptions-item>
-
-            <el-descriptions-item label="날씨 상태">
-              {{ city.status }}
-            </el-descriptions-item>
-          </el-descriptions>
-        </el-card>
-
-        <el-card shadow="never" class="section-card">
-          <template #header>
-            <div class="section-header">
-              <div>
-                <span class="section-label"> OPENWEATHER AIR POLLUTION </span>
-
-                <strong> 현재 대기질 </strong>
-              </div>
-
-              <el-tag :type="aqiType" effect="dark" round>
-                AQI {{ airQuality?.aqi ?? '-' }} · {{ aqiLabel }}
-              </el-tag>
-            </div>
-          </template>
-
-          <div v-if="airQuality" class="air-grid">
-            <div class="statistic-box">
-              <el-statistic title="PM2.5" :value="airQuality.pm25" :precision="1" />
-
-              <span>μg/m³</span>
-            </div>
-
-            <div class="statistic-box">
-              <el-statistic title="PM10" :value="airQuality.pm10" :precision="1" />
-
-              <span>μg/m³</span>
-            </div>
-
-            <div class="statistic-box">
-              <el-statistic title="NO₂" :value="airQuality.no2" :precision="1" />
-
-              <span>μg/m³</span>
-            </div>
-
-            <div class="statistic-box">
-              <el-statistic title="O₃" :value="airQuality.o3" :precision="1" />
-
-              <span>μg/m³</span>
-            </div>
-          </div>
-
-          <el-alert
-            v-else-if="airError"
-            :title="airError"
-            type="warning"
-            :closable="false"
-            show-icon
-          />
-
-          <el-empty v-else description="대기질 정보가 없습니다." />
-        </el-card>
-
-        <el-card v-if="detailInsight" shadow="never" class="section-card">
-          <template #header>
-            <div class="section-header">
-              <div>
-                <span class="section-label"> ACTIVITY INSIGHT </span>
-
-                <strong> 실시간 활동 가이드 </strong>
-              </div>
-
-              <el-tag
-                :type="
-                  detailInsight.activityScore >= configStore.activityScoreThreshold
+              <el-progress
+                :percentage="detailInsight.activityScore"
+                :stroke-width="12"
+                :status="
+                  detailInsight.activityScore >= 80
                     ? 'success'
-                    : 'danger'
+                    : detailInsight.activityScore >= 60
+                      ? 'warning'
+                      : 'exception'
                 "
-              >
-                {{ detailInsight.activityScore }} / 100
-              </el-tag>
+              />
+
+              <div class="insight-list">
+                <div>
+                  <span>추천 활동</span>
+                  <p>{{ detailInsight.recommendation }}</p>
+                </div>
+
+                <div>
+                  <span>주의 사항</span>
+                  <p>{{ detailInsight.caution }}</p>
+                </div>
+
+                <div>
+                  <span>내 추천 기준</span>
+                  <p>{{ configStore.activityScoreThreshold }}점 이상</p>
+                </div>
+              </div>
             </div>
-          </template>
-
-          <el-progress
-            :percentage="detailInsight.activityScore"
-            :stroke-width="14"
-            :status="
-              detailInsight.activityScore >= 80
-                ? 'success'
-                : detailInsight.activityScore >= 60
-                  ? 'warning'
-                  : 'exception'
-            "
-          />
-
-          <el-descriptions :column="1" border class="insight-descriptions">
-            <el-descriptions-item label="현재 판단">
-              {{ detailInsight.activity }}
-            </el-descriptions-item>
-
-            <el-descriptions-item label="추천 활동">
-              {{ detailInsight.recommendation }}
-            </el-descriptions-item>
-
-            <el-descriptions-item label="주의 사항">
-              {{ detailInsight.caution }}
-            </el-descriptions-item>
-          </el-descriptions>
+          </div>
         </el-card>
 
         <div class="detail-actions">
@@ -314,7 +296,7 @@ const goWeatherHome = () => {
         sub-title="요청한 도시 코드와 일치하는 날씨 데이터가 없습니다."
       >
         <template #extra>
-          <el-button type="primary" size="large" @click="goWeatherHome"> 날씨 대시보드 </el-button>
+          <el-button type="primary" @click="goWeatherHome"> 날씨 대시보드 </el-button>
         </template>
       </el-result>
     </main>
@@ -324,14 +306,14 @@ const goWeatherHome = () => {
 <style scoped>
 .detail-page {
   min-height: 100vh;
-  padding: 40px 24px 56px;
-  background: #f4f7fb;
-  color: #1f2937;
+  padding: 40px 24px 70px;
+  background: var(--color-background);
+  color: var(--color-text);
 }
 
 .detail-container {
   width: 100%;
-  max-width: 1100px;
+  max-width: var(--content-width);
   margin: 0 auto;
 }
 
@@ -339,35 +321,32 @@ const goWeatherHome = () => {
   margin-bottom: 20px;
 }
 
-.hero-card,
-.temperature-card,
-.section-card {
-  margin-bottom: 20px;
-  border-radius: 16px;
-}
-
-.detail-header,
-.temperature-content,
-.section-header {
+.weather-hero {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
+  gap: 38px;
+  margin-bottom: 20px;
+  padding: 40px 44px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-large);
+  background: linear-gradient(135deg, #f8faf6 0%, #e5eee7 100%);
 }
 
 .eyebrow,
-.metric-label,
 .section-label {
   display: block;
-  margin: 0 0 8px;
-  font-size: 11px;
-  font-weight: 800;
+  margin: 0 0 7px;
+  color: var(--color-primary);
+  font-size: 9px;
+  font-weight: 900;
   letter-spacing: 1.4px;
-  color: #64748b;
 }
 
-.eyebrow {
-  color: #2563eb;
+.region {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
 }
 
 .city-heading {
@@ -376,98 +355,242 @@ const goWeatherHome = () => {
   gap: 14px;
 }
 
-.region {
-  margin: 0;
-  color: #64748b;
-}
-
-.detail-header h1 {
-  margin: 4px 0 0;
-  font-size: 42px;
+.city-heading h1 {
+  margin: 3px 0 0;
+  color: var(--color-primary-deep);
+  font-size: 48px;
+  letter-spacing: -1.5px;
 }
 
 .detail-description {
+  max-width: 620px;
   margin: 12px 0 0;
-  color: #64748b;
-  line-height: 1.6;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
 }
 
-.temperature-card {
-  background: #0f172a;
-  border: none;
-}
-
-:deep(.temperature-card .el-card__body) {
-  padding: 30px;
-}
-
-.temperature-content {
+.hero-weather {
+  display: flex;
   align-items: flex-end;
-  color: #fff;
+  flex-direction: column;
+  min-width: 175px;
 }
 
-.detail-temperature {
-  margin: 6px 0;
-  font-size: 62px;
-  font-weight: 750;
+.hero-weather > span {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
 }
 
-.feels-like {
-  margin: 0;
-  color: #cbd5e1;
+.hero-weather > strong {
+  margin-top: 4px;
+  color: var(--color-primary);
+  font-size: 52px;
+  line-height: 1;
+}
+
+.hero-weather > small {
+  margin: 5px 0 12px;
+  color: var(--color-text-secondary);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.section-card,
+.insight-card {
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-card);
 }
 
 .section-header {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 18px;
 }
 
 .section-header strong {
   display: block;
-  font-size: 18px;
+  color: var(--color-text);
+  font-size: 17px;
 }
 
 .air-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .statistic-box {
-  padding: 18px;
-  background: #f8fafc;
+  padding: 17px;
   border-radius: 10px;
+  background: var(--color-surface-soft);
 }
 
 .statistic-box > span {
   display: block;
-  margin-top: 5px;
-  font-size: 12px;
-  color: #94a3b8;
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 10px;
 }
 
-.insight-descriptions {
+.insight-card {
+  margin-top: 16px;
+}
+
+.insight-card :deep(.el-card__body) {
+  padding: 30px 34px;
+}
+
+.insight-layout {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  align-items: center;
+  gap: 34px;
+}
+
+.insight-score {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding-right: 34px;
+  border-right: 1px solid var(--color-border-soft);
+}
+
+.insight-score > span {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+
+.insight-score > strong {
+  margin-top: 6px;
+  color: var(--color-primary);
+  font-size: 52px;
+  line-height: 1;
+}
+
+.insight-score > small {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.insight-content .el-progress {
+  margin-top: 18px;
+}
+
+.insight-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 20px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.insight-list > div {
+  padding: 16px 15px 0 0;
+}
+
+.insight-list > div + div {
+  padding-left: 15px;
+  border-left: 1px solid var(--color-border-soft);
+}
+
+.insight-list span {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.insight-list p {
+  margin: 5px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .detail-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 9px;
+  margin-top: 20px;
 }
 
-@media (max-width: 760px) {
-  .detail-header,
-  .temperature-content,
-  .section-header {
+.detail-actions .el-button {
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+@media (max-width: 800px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-score {
+    padding-right: 0;
+    padding-bottom: 24px;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+}
+
+@media (max-width: 650px) {
+  .detail-page {
+    padding: 30px 16px 58px;
+  }
+
+  .weather-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 32px 25px;
+  }
+
+  .hero-weather {
+    align-items: flex-start;
+  }
+
+  .city-heading {
+    align-items: flex-start;
     flex-direction: column;
   }
 
-  .air-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .city-heading h1 {
+    font-size: 40px;
   }
 
-  :deep(.el-descriptions__body .el-descriptions__table) {
-    table-layout: auto;
+  .section-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .air-grid,
+  .insight-list {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-list > div + div {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .detail-actions {
+    flex-direction: column;
+  }
+
+  .detail-actions .el-button {
+    width: 100%;
+    margin-left: 0;
   }
 }
 </style>

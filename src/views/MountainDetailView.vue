@@ -61,6 +61,43 @@ const airQualityTagType = computed(() => {
   return 'info'
 })
 
+const mountainDetailSections = computed(() => {
+  if (!mountain.value) return []
+
+  return [
+    {
+      key: 'selectionReason',
+      title: '100대 명산 선정 이유',
+      content: mountain.value.selectionReason,
+      tag: '100대 명산',
+    },
+    {
+      key: 'courses',
+      title: '추천 산행 코스',
+      content: mountain.value.courses,
+    },
+    {
+      key: 'transportation',
+      title: '대중교통 안내',
+      content: mountain.value.transportation,
+    },
+    {
+      key: 'description',
+      title: '산 소개',
+      content: mountain.value.description,
+    },
+    {
+      key: 'detail',
+      title: '상세 이야기',
+      content: mountain.value.detail,
+    },
+  ].filter((section) => section.content?.trim())
+})
+
+const formatSectionNumber = (index) => {
+  return String(index + 2).padStart(2, '0')
+}
+
 const loadMountain = async () => {
   if (!mountainName.value) return
 
@@ -123,7 +160,7 @@ onMounted(loadMountain)
     <main class="detail-container">
       <el-page-header title="산 검색으로 돌아가기" @back="goBack">
         <template #content>
-          <span>산 상세정보</span>
+          <span class="page-header-title">산 상세정보</span>
         </template>
       </el-page-header>
 
@@ -139,196 +176,84 @@ onMounted(loadMountain)
 
         <template v-if="mountain">
           <section class="mountain-hero">
-            <div>
+            <div class="mountain-heading">
               <p class="eyebrow">MOUNTAIN INFORMATION</p>
               <h1>{{ mountain.name }}</h1>
               <p v-if="mountain.subtitle" class="subtitle">{{ mountain.subtitle }}</p>
+
+              <div class="hero-location">
+                <span>LOCATION</span>
+                <p>{{ mountain.location || '소재지 정보 없음' }}</p>
+              </div>
             </div>
 
-            <div class="hero-tags">
-              <el-tag v-if="mountain.height" type="success" size="large" effect="plain">
-                해발 {{ mountain.height }}m
-              </el-tag>
-              <el-tag effect="plain">산림청 공공데이터</el-tag>
+            <div class="hero-stat">
+              <span>ALTITUDE</span>
+
+              <div v-if="mountain.height">
+                <strong>{{ mountain.height }}</strong>
+                <small>m</small>
+              </div>
+
+              <p v-else>정보 없음</p>
             </div>
           </section>
 
-          <el-card shadow="never" class="detail-card">
-            <template #header>
-              <strong>기본 정보</strong>
-            </template>
-
-            <el-descriptions :column="1" border>
-              <el-descriptions-item label="산 코드">
-                {{ mountain.id || '정보 없음' }}
-              </el-descriptions-item>
-              <el-descriptions-item label="높이">
-                {{ mountain.height ? `${mountain.height}m` : '정보 없음' }}
-              </el-descriptions-item>
-              <el-descriptions-item label="소재지">
-                {{ mountain.location || '정보 없음' }}
-              </el-descriptions-item>
-            </el-descriptions>
-          </el-card>
-
-          <el-card shadow="never" class="detail-card">
-            <template #header>
-              <div class="section-heading">
-                <strong>오늘의 산행 기상</strong>
-                <el-tag v-if="weatherRegion" type="primary" effect="plain">
-                  기준 지역 · {{ weatherRegion.label }}
-                </el-tag>
+          <el-card v-if="hikingInsight" shadow="never" class="condition-card">
+            <div class="condition-header">
+              <div>
+                <p class="eyebrow">TODAY'S HIKING CONDITION</p>
+                <h2>{{ hikingInsight.label }}</h2>
               </div>
-            </template>
 
-            <div v-loading="isWeatherLoading">
-              <el-empty
-                v-if="!weatherRegion"
-                description="이 산의 소재지와 연결할 수 있는 기상 기준 지역이 없습니다."
-              />
-
-              <template v-else-if="weather">
-                <el-alert
-                  v-if="weather.apiError"
-                  :title="`실시간 기상정보를 가져오지 못해 기본 데이터를 표시합니다. ${weather.apiError}`"
-                  type="warning"
-                  :closable="false"
-                  show-icon
-                  class="weather-alert"
-                />
-
-                <div class="weather-summary">
-                  <el-statistic title="현재 기온" :value="weather.temp" :precision="1">
-                    <template #suffix>℃</template>
-                  </el-statistic>
-                  <el-statistic title="체감 온도" :value="weather.feelsLike" :precision="1">
-                    <template #suffix>℃</template>
-                  </el-statistic>
-                  <el-statistic title="습도" :value="weather.humidity">
-                    <template #suffix>%</template>
-                  </el-statistic>
-                  <el-statistic title="풍속" :value="weather.windSpeed" :precision="1">
-                    <template #suffix>m/s</template>
-                  </el-statistic>
-                </div>
-
-                <el-descriptions :column="2" border class="weather-details">
-                  <el-descriptions-item label="날씨">
-                    {{ weather.status || '정보 없음' }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="기압">
-                    {{ weather.pressure ? `${weather.pressure} hPa` : '정보 없음' }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="구름량">
-                    {{ weather.cloudiness != null ? `${weather.cloudiness}%` : '정보 없음' }}
-                  </el-descriptions-item>
-                  <el-descriptions-item label="가시거리">
-                    {{
-                      weather.visibility != null
-                        ? `${(weather.visibility / 1000).toFixed(1)} km`
-                        : '정보 없음'
-                    }}
-                  </el-descriptions-item>
-                </el-descriptions>
-
-                <p class="weather-note">
-                  산 정상의 정밀 기상정보가 아니라 소재지를 기준으로 연결한 대표 지역
-                  기상정보입니다.
-                </p>
-              </template>
+              <el-tag :type="hikingInsight.type" effect="dark" size="large">
+                {{ hikingInsight.label }}
+              </el-tag>
             </div>
-          </el-card>
-
-          <el-card shadow="never" class="detail-card">
-            <template #header>
-              <div class="section-heading">
-                <strong>대기질</strong>
-                <el-tag v-if="airQuality" :type="airQualityTagType" effect="plain">
-                  AQI {{ airQuality.aqi }} · {{ airQualityLabel }}
-                </el-tag>
-              </div>
-            </template>
-
-            <div v-loading="isAirQualityLoading">
-              <el-alert
-                v-if="airQualityError"
-                :title="`대기질 정보를 불러오지 못했습니다. ${airQualityError}`"
-                type="warning"
-                :closable="false"
-                show-icon
-              />
-
-              <div v-else-if="airQuality" class="air-summary">
-                <el-statistic title="PM2.5" :value="airQuality.pm25" :precision="1">
-                  <template #suffix>㎍/㎥</template>
-                </el-statistic>
-                <el-statistic title="PM10" :value="airQuality.pm10" :precision="1">
-                  <template #suffix>㎍/㎥</template>
-                </el-statistic>
-                <el-statistic title="NO₂" :value="airQuality.no2" :precision="1">
-                  <template #suffix>㎍/㎥</template>
-                </el-statistic>
-                <el-statistic title="O₃" :value="airQuality.o3" :precision="1">
-                  <template #suffix>㎍/㎥</template>
-                </el-statistic>
-              </div>
-
-              <el-empty
-                v-else-if="!isAirQualityLoading"
-                description="현재 대기질 정보를 확인할 수 없습니다."
-              />
-            </div>
-
-            <p class="weather-note">
-              대기질 정보 역시 선택한 산의 대표 기상 지역 좌표를 기준으로 제공되는 참고 정보입니다.
-            </p>
-          </el-card>
-
-          <el-card v-if="hikingInsight" shadow="never" class="detail-card hiking-condition-card">
-            <template #header>
-              <div class="section-heading">
-                <strong>Hiking Condition</strong>
-                <el-tag :type="hikingInsight.type" effect="dark">
-                  {{ hikingInsight.label }}
-                </el-tag>
-              </div>
-            </template>
 
             <div class="condition-layout">
               <div class="condition-score">
-                <el-progress type="dashboard" :percentage="hikingInsight.score" :width="150" />
-                <strong>{{ hikingInsight.score }} / 100</strong>
-                <span>산행 환경 점수</span>
+                <el-progress
+                  type="dashboard"
+                  :percentage="hikingInsight.score"
+                  :width="174"
+                  :stroke-width="11"
+                />
+
+                <div class="score-label">
+                  <strong>{{ hikingInsight.score }}</strong>
+                  <span>/ 100</span>
+                </div>
+
+                <small>HIKING SCORE</small>
               </div>
 
               <div class="condition-content">
-                <h3>{{ hikingInsight.label }}</h3>
-                <p>{{ hikingInsight.recommendation }}</p>
+                <div class="recommendation">
+                  <span>CONDITION GUIDE</span>
+                  <p>{{ hikingInsight.recommendation }}</p>
+                </div>
 
-                <el-alert
-                  :title="
-                    meetsHikingThreshold
-                      ? `내 추천 기준 충족 · ${configStore.hikingThresholdLabel}`
-                      : `내 추천 기준 미달 · ${configStore.hikingThresholdLabel}`
-                  "
-                  :type="meetsHikingThreshold ? 'success' : 'warning'"
-                  :closable="false"
-                  show-icon
-                  class="preference-result"
+                <div
+                  class="preference-box"
+                  :class="{ success: meetsHikingThreshold, warning: !meetsHikingThreshold }"
                 >
-                  <template #default>
-                    <span v-if="meetsHikingThreshold">
-                      현재 점수 {{ hikingInsight.score }}점이 설정한 기준을 충족합니다.
-                    </span>
-                    <span v-else>
-                      현재 점수 {{ hikingInsight.score }}점이 설정한 기준보다
-                      {{ configStore.hikingScoreThreshold - hikingInsight.score }}점 낮습니다.
-                    </span>
-                  </template>
-                </el-alert>
+                  <div>
+                    <span>MY HIKING PREFERENCE</span>
+                    <strong>
+                      {{ meetsHikingThreshold ? '내 추천 기준 충족' : '내 추천 기준 미달' }}
+                    </strong>
+                  </div>
+
+                  <div class="preference-score">
+                    <strong>{{ configStore.hikingScoreThreshold }}</strong>
+                    <span>점 이상</span>
+                  </div>
+                </div>
 
                 <div v-if="hikingInsight.warnings.length" class="warning-list">
-                  <strong>현재 주의사항</strong>
+                  <span class="warning-title">현재 주의사항</span>
+
                   <ul>
                     <li v-for="warning in hikingInsight.warnings" :key="warning">
                       {{ warning }}
@@ -338,7 +263,7 @@ onMounted(loadMountain)
 
                 <el-alert
                   v-else
-                  title="현재 기상 및 대기질 데이터에서 특별한 산행 주의요소가 감지되지 않았습니다."
+                  title="현재 환경 데이터에서 특별한 산행 주의요소가 감지되지 않았습니다."
                   type="success"
                   :closable="false"
                   show-icon
@@ -347,47 +272,208 @@ onMounted(loadMountain)
             </div>
 
             <p class="condition-note">
-              이 점수는 대표 지역의 기온·습도·풍속·날씨 상태·가시거리와 대기질을 조합해 계산한
-              참고용 지표입니다. 개인 추천 기준은 점수 계산 자체에는 영향을 주지 않습니다.
+              대표 지역의 기온·습도·풍속·날씨 상태·가시거리·대기질을 이용한 참고용 지표입니다. 개인
+              추천 기준은 점수 계산 자체에는 영향을 주지 않습니다.
             </p>
           </el-card>
 
-          <el-card v-if="mountain.selectionReason" shadow="never" class="detail-card">
+          <section class="environment-section">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">TODAY'S ENVIRONMENT</p>
+                <h2>산행 전 확인할 환경</h2>
+              </div>
+
+              <el-tag v-if="weatherRegion" effect="plain">
+                기준 지역 · {{ weatherRegion.label }}
+              </el-tag>
+            </div>
+
+            <div class="environment-grid">
+              <el-card shadow="never" class="environment-card">
+                <template #header>
+                  <div class="environment-card-header">
+                    <div>
+                      <span>WEATHER</span>
+                      <strong>현재 기상</strong>
+                    </div>
+
+                    <span v-if="weather" class="weather-status">
+                      {{ weather.status || '정보 없음' }}
+                    </span>
+                  </div>
+                </template>
+
+                <div v-loading="isWeatherLoading">
+                  <el-empty
+                    v-if="!weatherRegion"
+                    description="기상 기준 지역을 찾을 수 없습니다."
+                  />
+
+                  <template v-else-if="weather">
+                    <el-alert
+                      v-if="weather.apiError"
+                      :title="weather.apiError"
+                      type="warning"
+                      :closable="false"
+                      show-icon
+                      class="weather-alert"
+                    />
+
+                    <div class="temperature-hero">
+                      <span>현재 기온</span>
+                      <strong>{{ weather.temp.toFixed(1) }}°</strong>
+                      <small>체감 {{ weather.feelsLike.toFixed(1) }}℃</small>
+                    </div>
+
+                    <div class="metric-grid">
+                      <div>
+                        <span>습도</span>
+                        <strong>{{ weather.humidity }}%</strong>
+                      </div>
+
+                      <div>
+                        <span>풍속</span>
+                        <strong>{{ weather.windSpeed.toFixed(1) }} m/s</strong>
+                      </div>
+
+                      <div>
+                        <span>가시거리</span>
+                        <strong>
+                          {{
+                            weather.visibility != null
+                              ? `${(weather.visibility / 1000).toFixed(1)} km`
+                              : '-'
+                          }}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>기압</span>
+                        <strong>
+                          {{ weather.pressure ? `${weather.pressure} hPa` : '-' }}
+                        </strong>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+
+                <p class="data-note">
+                  산 정상의 정밀 예보가 아닌 소재지 기반 대표 지역 기상정보입니다.
+                </p>
+              </el-card>
+
+              <el-card shadow="never" class="environment-card">
+                <template #header>
+                  <div class="environment-card-header">
+                    <div>
+                      <span>AIR QUALITY</span>
+                      <strong>현재 대기질</strong>
+                    </div>
+
+                    <el-tag v-if="airQuality" :type="airQualityTagType" effect="light">
+                      AQI {{ airQuality.aqi }} · {{ airQualityLabel }}
+                    </el-tag>
+                  </div>
+                </template>
+
+                <div v-loading="isAirQualityLoading">
+                  <el-alert
+                    v-if="airQualityError"
+                    :title="airQualityError"
+                    type="warning"
+                    :closable="false"
+                    show-icon
+                  />
+
+                  <template v-else-if="airQuality">
+                    <div class="air-quality-hero">
+                      <span>OPENWEATHER AQI</span>
+                      <strong>{{ airQuality.aqi }}</strong>
+                      <small>{{ airQualityLabel }}</small>
+                    </div>
+
+                    <div class="metric-grid">
+                      <div>
+                        <span>PM2.5</span>
+                        <strong>{{ airQuality.pm25.toFixed(1) }}</strong>
+                        <small>㎍/㎥</small>
+                      </div>
+
+                      <div>
+                        <span>PM10</span>
+                        <strong>{{ airQuality.pm10.toFixed(1) }}</strong>
+                        <small>㎍/㎥</small>
+                      </div>
+
+                      <div>
+                        <span>NO₂</span>
+                        <strong>{{ airQuality.no2.toFixed(1) }}</strong>
+                        <small>㎍/㎥</small>
+                      </div>
+
+                      <div>
+                        <span>O₃</span>
+                        <strong>{{ airQuality.o3.toFixed(1) }}</strong>
+                        <small>㎍/㎥</small>
+                      </div>
+                    </div>
+                  </template>
+
+                  <el-empty
+                    v-else-if="!isAirQualityLoading"
+                    description="대기질 정보를 확인할 수 없습니다."
+                  />
+                </div>
+
+                <p class="data-note">
+                  산의 대표 기상 지역 좌표를 기준으로 조회한 참고용 대기질 정보입니다.
+                </p>
+              </el-card>
+            </div>
+          </section>
+
+          <el-card shadow="never" class="detail-card">
             <template #header>
-              <div class="section-heading">
-                <strong>100대 명산 선정 이유</strong>
-                <el-tag type="success" size="small">100대 명산</el-tag>
+              <div class="detail-card-heading">
+                <span>01</span>
+                <strong>기본 정보</strong>
               </div>
             </template>
-            <p class="content-text">{{ mountain.selectionReason }}</p>
+
+            <el-descriptions :column="1" border>
+              <el-descriptions-item label="산 코드">
+                {{ mountain.id || '정보 없음' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="높이">
+                {{ mountain.height ? `${mountain.height}m` : '정보 없음' }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="소재지">
+                {{ mountain.location || '정보 없음' }}
+              </el-descriptions-item>
+            </el-descriptions>
           </el-card>
 
-          <el-card v-if="mountain.courses" shadow="never" class="detail-card">
+          <el-card
+            v-for="(section, index) in mountainDetailSections"
+            :key="section.key"
+            shadow="never"
+            class="detail-card"
+          >
             <template #header>
-              <strong>추천 산행 코스</strong>
-            </template>
-            <p class="content-text">{{ mountain.courses }}</p>
-          </el-card>
+              <div class="detail-card-heading">
+                <span>{{ formatSectionNumber(index) }}</span>
+                <strong>{{ section.title }}</strong>
 
-          <el-card v-if="mountain.transportation" shadow="never" class="detail-card">
-            <template #header>
-              <strong>대중교통 안내</strong>
+                <el-tag v-if="section.tag" type="success" size="small" effect="plain">
+                  {{ section.tag }}
+                </el-tag>
+              </div>
             </template>
-            <p class="content-text">{{ mountain.transportation }}</p>
-          </el-card>
 
-          <el-card v-if="mountain.description" shadow="never" class="detail-card">
-            <template #header>
-              <strong>산 소개</strong>
-            </template>
-            <p class="content-text">{{ mountain.description }}</p>
-          </el-card>
-
-          <el-card v-if="mountain.detail" shadow="never" class="detail-card">
-            <template #header>
-              <strong>상세 이야기</strong>
-            </template>
-            <p class="content-text">{{ mountain.detail }}</p>
+            <p class="content-text">{{ section.content }}</p>
           </el-card>
         </template>
 
@@ -409,170 +495,429 @@ onMounted(loadMountain)
 <style scoped>
 .detail-page {
   min-height: 100vh;
-  padding: 42px 24px 70px;
-  background: #f4f7fb;
-  color: #1f2937;
+  padding: 40px 24px 80px;
+  background: var(--color-background);
+  color: var(--color-text);
 }
 .detail-container {
   width: 100%;
-  max-width: 1100px;
+  max-width: var(--content-width);
   margin: 0 auto;
 }
 .detail-content {
   min-height: 420px;
-  margin-top: 26px;
+  margin-top: 28px;
 }
 .detail-alert,
 .weather-alert {
   margin-bottom: 18px;
 }
+.page-header-title {
+  color: var(--color-text);
+  font-weight: 700;
+}
 
 .mountain-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: 26px;
+  padding: 38px 42px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-large);
+  background: linear-gradient(135deg, #f8faf6 0%, #e7f0e9 100%);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.8px;
+}
+.mountain-heading h1 {
+  margin: 0;
+  color: var(--color-primary-deep);
+  font-size: clamp(42px, 6vw, 62px);
+  line-height: 1.05;
+  letter-spacing: -2.2px;
+}
+.subtitle {
+  margin: 10px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 17px;
+}
+
+.hero-location {
+  margin-top: 24px;
+}
+.hero-location span,
+.hero-stat > span {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+}
+.hero-location p {
+  max-width: 720px;
+  margin: 5px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.hero-stat {
+  min-width: 150px;
+  text-align: right;
+}
+.hero-stat div {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 2px;
+  color: var(--color-primary);
+}
+.hero-stat strong {
+  font-size: 44px;
+  line-height: 1;
+}
+.hero-stat small {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.condition-card {
+  margin-bottom: 42px;
+  overflow: hidden;
+  border: 1px solid rgba(47, 104, 79, 0.16);
+  border-radius: var(--radius-large);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.condition-card :deep(.el-card__body) {
+  padding: 34px 38px;
+}
+
+.condition-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
   margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--color-border-soft);
 }
-.eyebrow {
-  margin: 0 0 7px;
-  color: #2563eb;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 1.7px;
-}
-.mountain-hero h1 {
+.condition-header h2 {
   margin: 0;
-  font-size: 40px;
-  letter-spacing: -1px;
-}
-.subtitle {
-  margin: 8px 0 0;
-  color: #64748b;
-  font-size: 17px;
-}
-.hero-tags {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.detail-card {
-  margin-bottom: 18px;
-  border-radius: 16px;
-}
-.section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.content-text {
-  margin: 0;
-  white-space: pre-line;
-  color: #475569;
-  line-height: 1.85;
-}
-
-.weather-summary,
-.air-summary {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
-  margin-bottom: 22px;
-}
-.weather-details {
-  margin-top: 8px;
-}
-.weather-note,
-.condition-note {
-  margin: 14px 0 0;
-  color: #94a3b8;
-  font-size: 12px;
-  line-height: 1.6;
+  color: var(--color-primary-deep);
+  font-size: 28px;
+  letter-spacing: -0.8px;
 }
 
 .condition-layout {
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 32px;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 42px;
   align-items: center;
 }
 .condition-score {
   display: flex;
   align-items: center;
   flex-direction: column;
-  gap: 5px;
-}
-.condition-score strong {
-  margin-top: 4px;
-  font-size: 18px;
-}
-.condition-score span {
-  color: #94a3b8;
-  font-size: 12px;
 }
 
-.condition-content h3 {
-  margin: 0;
-  font-size: 23px;
+.score-label {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: -10px;
 }
-.condition-content > p {
-  margin: 8px 0 18px;
-  color: #64748b;
+.score-label strong {
+  color: var(--color-primary-deep);
+  font-size: 28px;
+}
+.score-label span {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.condition-score > small {
+  margin-top: 3px;
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+}
+
+.condition-content {
+  min-width: 0;
+}
+.recommendation > span,
+.preference-box span {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+.recommendation p {
+  margin: 5px 0 18px;
+  color: var(--color-text-secondary);
+  font-size: 15px;
   line-height: 1.7;
 }
-.preference-result {
+
+.preference-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
   margin-bottom: 16px;
+  padding: 15px 17px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+}
+.preference-box > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.preference-box > div:first-child strong {
+  font-size: 15px;
+}
+.preference-box.success {
+  background: var(--color-primary-softer);
+}
+.preference-box.warning {
+  background: var(--color-warning-soft);
+}
+
+.preference-score {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  white-space: nowrap;
+}
+.preference-score strong {
+  color: var(--color-primary);
+  font-size: 23px;
+}
+.preference-score span {
+  color: var(--color-text-muted);
+  font-size: 10px;
 }
 
 .warning-list {
-  padding: 16px 18px;
-  border-radius: 10px;
-  background: #fff7ed;
+  padding: 15px 17px;
+  border-radius: 12px;
+  background: var(--color-warning-soft);
 }
-.warning-list strong {
-  font-size: 14px;
+.warning-title {
+  color: #8a5a18;
+  font-size: 12px;
+  font-weight: 800;
 }
 .warning-list ul {
-  margin: 9px 0 0;
-  padding-left: 20px;
-  color: #9a3412;
-  line-height: 1.8;
+  margin: 8px 0 0;
+  padding-left: 19px;
+  color: #87551b;
+  font-size: 13px;
+  line-height: 1.75;
 }
 
-@media (max-width: 800px) {
-  .weather-summary,
-  .air-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.condition-note,
+.data-note {
+  margin: 18px 0 0;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.environment-section {
+  margin-bottom: 38px;
+}
+.section-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+.section-title h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 25px;
+  letter-spacing: -0.7px;
+}
+
+.environment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.environment-card {
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-card);
+}
+
+.environment-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.environment-card-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.environment-card-header span {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.1px;
+}
+.environment-card-header strong {
+  color: var(--color-text);
+  font-size: 17px;
+}
+.weather-status {
+  color: var(--color-primary) !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+}
+
+.temperature-hero,
+.air-quality-hero {
+  padding: 4px 0 22px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+.temperature-hero > span,
+.air-quality-hero > span {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+.temperature-hero strong,
+.air-quality-hero strong {
+  display: inline-block;
+  margin-top: 5px;
+  color: var(--color-primary-deep);
+  font-size: 44px;
+  line-height: 1;
+}
+.temperature-hero small,
+.air-quality-hero small {
+  margin-left: 7px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 6px;
+}
+.metric-grid > div {
+  min-height: 72px;
+  padding: 14px 12px 10px 0;
+}
+.metric-grid > div:nth-child(even) {
+  padding-left: 16px;
+  border-left: 1px solid var(--color-border-soft);
+}
+.metric-grid > div:nth-child(n + 3) {
+  border-top: 1px solid var(--color-border-soft);
+}
+.metric-grid span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+.metric-grid strong {
+  color: var(--color-text);
+  font-size: 16px;
+}
+.metric-grid small {
+  margin-left: 3px;
+  color: var(--color-text-muted);
+  font-size: 9px;
+}
+
+.detail-card {
+  margin-bottom: 16px;
+  border-radius: var(--radius-medium);
+}
+
+.detail-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.detail-card-heading > span {
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.detail-card-heading strong {
+  font-size: 16px;
+}
+.detail-card-heading .el-tag {
+  margin-left: auto;
+}
+
+.content-text {
+  margin: 0;
+  white-space: pre-line;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+@media (max-width: 820px) {
   .condition-layout {
     grid-template-columns: 1fr;
   }
-}
-
-@media (max-width: 700px) {
-  .detail-page {
-    padding: 32px 16px 52px;
-  }
-  .mountain-hero {
-    flex-direction: column;
-  }
-  .mountain-hero h1 {
-    font-size: 32px;
-  }
-  .hero-tags {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 520px) {
-  .weather-summary,
-  .air-summary {
+  .environment-grid {
     grid-template-columns: 1fr;
   }
-  .section-heading {
+}
+
+@media (max-width: 650px) {
+  .detail-page {
+    padding: 30px 16px 58px;
+  }
+  .mountain-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 30px 24px;
+  }
+  .mountain-heading h1 {
+    font-size: 42px;
+  }
+  .hero-stat {
+    text-align: left;
+  }
+  .hero-stat div {
+    justify-content: flex-start;
+  }
+  .condition-card :deep(.el-card__body) {
+    padding: 26px 20px;
+  }
+  .condition-header,
+  .section-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .preference-box {
     align-items: flex-start;
     flex-direction: column;
   }
