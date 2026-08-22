@@ -42,7 +42,7 @@ const router = createRouter({
     {
       path: '/about',
       name: 'About',
-      component: () => import('@/views/WeatherAboutView.vue'),
+      component: () => import('@/views/AboutView.vue'),
     },
     {
       path: '/:pathMatch(.*)*',
