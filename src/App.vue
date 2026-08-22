@@ -1,8 +1,19 @@
 <script setup>
-import { RouterView, useRoute } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 import UnitToggler from '@/components/exercise/UnitToggler.vue'
 
 const route = useRoute()
+
+const activeMenu = computed(() => {
+  if (route.name === 'HikingHome' || route.name === 'MountainDetail') return '/'
+  if (route.name === 'WeatherHome' || route.name === 'WeatherDetail') return '/weather'
+  if (route.name === 'ActivityGuide') return '/activity-guide'
+  if (route.name === 'Practice') return '/practice'
+  if (route.name === 'WeatherAbout') return '/about'
+
+  return ''
+})
 </script>
 
 <template>
@@ -10,20 +21,22 @@ const route = useRoute()
     <header class="app-header">
       <div class="navigation">
         <div class="brand-area">
-          <RouterLink to="/" class="brand"> WEATHER SIGNAL </RouterLink>
+          <RouterLink to="/" class="brand"> HIKING SIGNAL </RouterLink>
 
-          <el-tag size="small" type="primary" effect="plain" round> Vue </el-tag>
+          <el-tag size="small" type="success" effect="plain" round> Vue </el-tag>
         </div>
 
         <div class="navigation-right">
           <el-menu
-            :default-active="route.path"
+            :default-active="activeMenu"
             mode="horizontal"
             router
             :ellipsis="false"
             class="main-menu"
           >
-            <el-menu-item index="/"> 날씨 </el-menu-item>
+            <el-menu-item index="/"> 산 찾기 </el-menu-item>
+
+            <el-menu-item index="/weather"> 날씨 </el-menu-item>
 
             <el-menu-item index="/activity-guide"> Activity Guide </el-menu-item>
 
@@ -89,11 +102,9 @@ const route = useRoute()
   align-items: center;
   gap: 22px;
 }
-
 .main-menu {
   border-bottom: none !important;
 }
-
 .app-content {
   width: 100%;
 }
@@ -105,14 +116,12 @@ const route = useRoute()
     gap: 10px;
     padding: 14px 16px;
   }
-
   .navigation-right {
     width: 100%;
     align-items: flex-start;
     flex-direction: column;
     gap: 10px;
   }
-
   .main-menu {
     width: 100%;
     overflow-x: auto;
