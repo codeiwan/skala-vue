@@ -49,7 +49,11 @@ const showUnitToggler = computed(() => {
             <el-menu-item index="/about">소개</el-menu-item>
           </el-menu>
 
-          <UnitToggler v-if="showUnitToggler" />
+          <div class="utility-area">
+            <Transition name="utility-fade">
+              <UnitToggler v-if="showUnitToggler" class="unit-toggler" />
+            </Transition>
+          </div>
         </div>
       </div>
     </header>
@@ -121,12 +125,14 @@ const showUnitToggler = computed(() => {
   flex-direction: column;
   gap: 1px;
 }
+
 .brand-copy strong {
   color: var(--color-primary-deep);
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 1.5px;
 }
+
 .brand-copy span {
   color: var(--color-text-muted);
   font-size: 10px;
@@ -135,11 +141,15 @@ const showUnitToggler = computed(() => {
 }
 
 .navigation-right {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: flex-end;
+  min-width: 620px;
 }
+
 .main-menu {
+  margin-right: 104px;
   background: transparent !important;
   border-bottom: none !important;
 }
@@ -161,8 +171,50 @@ const showUnitToggler = computed(() => {
   font-weight: 800;
 }
 
+.utility-area {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 88px;
+  transform: translateY(-50%);
+}
+
+.unit-toggler {
+  flex-shrink: 0;
+}
+
+.utility-fade-enter-active,
+.utility-fade-leave-active {
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+
+.utility-fade-enter-from,
+.utility-fade-leave-to {
+  opacity: 0;
+  transform: translateX(4px);
+}
+
 .app-content {
   width: 100%;
+}
+
+@media (max-width: 1050px) {
+  .navigation-right {
+    min-width: 560px;
+  }
+
+  .main-menu {
+    margin-right: 90px;
+  }
+
+  .utility-area {
+    width: 76px;
+  }
 }
 
 @media (max-width: 900px) {
@@ -172,18 +224,30 @@ const showUnitToggler = computed(() => {
     gap: 8px;
     padding: 14px 18px 0;
   }
+
   .navigation-right {
+    position: static;
     width: 100%;
+    min-width: 0;
     align-items: flex-start;
     flex-direction: column;
     gap: 8px;
   }
+
   .main-menu {
     width: 100%;
+    margin-right: 0;
     overflow-x: auto;
   }
+
   .main-menu.el-menu--horizontal > .el-menu-item {
     height: 48px;
+  }
+
+  .utility-area {
+    position: static;
+    width: auto;
+    transform: none;
   }
 }
 
