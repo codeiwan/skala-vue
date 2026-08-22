@@ -292,6 +292,7 @@ const isExactMatch = (mountain) => {
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
 .card-footer {
