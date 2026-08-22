@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useConfigStore } from '@/stores/configStore'
 import { useMountainStore } from '@/stores/mountainStore'
 import { useWeatherStore } from '@/stores/weatherStore'
 import { fetchAirPollution, getWeatherErrorMessage } from '@/services/weatherApi'
@@ -9,6 +10,7 @@ import { resolveMountainWeatherRegion } from '@/utils/mountainWeather'
 
 const route = useRoute()
 const router = useRouter()
+const configStore = useConfigStore()
 const mountainStore = useMountainStore()
 const weatherStore = useWeatherStore()
 
@@ -32,6 +34,11 @@ const isAirQualityLoading = ref(false)
 const hikingInsight = computed(() => {
   if (!weather.value || weather.value.apiError) return null
   return createHikingInsight(weather.value, airQuality.value)
+})
+
+const meetsHikingThreshold = computed(() => {
+  if (!hikingInsight.value) return false
+  return hikingInsight.value.score >= configStore.hikingScoreThreshold
 })
 
 const airQualityLabel = computed(() => {
@@ -298,6 +305,28 @@ onMounted(loadMountain)
                 <h3>{{ hikingInsight.label }}</h3>
                 <p>{{ hikingInsight.recommendation }}</p>
 
+                <el-alert
+                  :title="
+                    meetsHikingThreshold
+                      ? `내 추천 기준 충족 · ${configStore.hikingThresholdLabel}`
+                      : `내 추천 기준 미달 · ${configStore.hikingThresholdLabel}`
+                  "
+                  :type="meetsHikingThreshold ? 'success' : 'warning'"
+                  :closable="false"
+                  show-icon
+                  class="preference-result"
+                >
+                  <template #default>
+                    <span v-if="meetsHikingThreshold">
+                      현재 점수 {{ hikingInsight.score }}점이 설정한 기준을 충족합니다.
+                    </span>
+                    <span v-else>
+                      현재 점수 {{ hikingInsight.score }}점이 설정한 기준보다
+                      {{ configStore.hikingScoreThreshold - hikingInsight.score }}점 낮습니다.
+                    </span>
+                  </template>
+                </el-alert>
+
                 <div v-if="hikingInsight.warnings.length" class="warning-list">
                   <strong>현재 주의사항</strong>
                   <ul>
@@ -319,7 +348,7 @@ onMounted(loadMountain)
 
             <p class="condition-note">
               이 점수는 대표 지역의 기온·습도·풍속·날씨 상태·가시거리와 대기질을 조합해 계산한
-              참고용 지표입니다.
+              참고용 지표입니다. 개인 추천 기준은 점수 계산 자체에는 영향을 주지 않습니다.
             </p>
           </el-card>
 
@@ -484,6 +513,7 @@ onMounted(loadMountain)
   color: #94a3b8;
   font-size: 12px;
 }
+
 .condition-content h3 {
   margin: 0;
   font-size: 23px;
@@ -493,6 +523,10 @@ onMounted(loadMountain)
   color: #64748b;
   line-height: 1.7;
 }
+.preference-result {
+  margin-bottom: 16px;
+}
+
 .warning-list {
   padding: 16px 18px;
   border-radius: 10px;

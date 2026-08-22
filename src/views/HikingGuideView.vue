@@ -1,4 +1,8 @@
 <script setup>
+import { useConfigStore } from '@/stores/configStore'
+
+const configStore = useConfigStore()
+
 const scoreLevels = [
   {
     range: '85 ~ 100',
@@ -52,6 +56,10 @@ const conditionFactors = [
     description: 'OpenWeatherMap AQI를 참고해 장시간 야외활동 부담을 반영합니다.',
   },
 ]
+
+const handleThresholdChange = (value) => {
+  configStore.setHikingScoreThreshold(value)
+}
 </script>
 
 <template>
@@ -73,6 +81,47 @@ const conditionFactors = [
         show-icon
         class="guide-alert"
       />
+
+      <el-card shadow="never" class="preference-card">
+        <template #header>
+          <div class="preference-heading">
+            <div>
+              <p class="section-label">MY HIKING PREFERENCE</p>
+              <strong>내 산행 추천 기준</strong>
+            </div>
+
+            <el-tag type="success" effect="plain" size="large">
+              {{ configStore.hikingThresholdLabel }}
+            </el-tag>
+          </div>
+        </template>
+
+        <p class="preference-description">
+          어느 정도의 산행 환경 점수부터 개인적으로 산행하기 좋은 상태라고 볼지 설정할 수 있습니다.
+          이 설정은 실제 Hiking Condition 계산 결과를 변경하지 않고, 내 기준 충족 여부를 판단하는 데
+          사용됩니다.
+        </p>
+
+        <div class="slider-area">
+          <span>50</span>
+
+          <el-slider
+            :model-value="configStore.hikingScoreThreshold"
+            :min="50"
+            :max="90"
+            :step="5"
+            show-stops
+            @update:model-value="handleThresholdChange"
+          />
+
+          <span>90</span>
+        </div>
+
+        <div class="preference-example">
+          예를 들어 기준을 80점으로 설정하면 Hiking Condition이 75점인 경우
+          <strong>내 추천 기준 미달</strong>로 표시됩니다.
+        </div>
+      </el-card>
 
       <section class="guide-section">
         <div class="section-heading">
@@ -126,6 +175,7 @@ const conditionFactors = [
           <li>산 상세정보에서 소재지와 추천 산행 코스를 확인합니다.</li>
           <li>대표 지역의 현재 기상정보와 대기질을 확인합니다.</li>
           <li>Hiking Condition과 주의사항을 참고해 산행 여부를 판단합니다.</li>
+          <li>내 추천 기준과 현재 점수를 비교해 개인적인 산행 판단에 활용합니다.</li>
         </ol>
       </el-card>
     </main>
@@ -167,7 +217,50 @@ const conditionFactors = [
   line-height: 1.7;
 }
 .guide-alert {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+}
+
+.preference-card {
+  margin-bottom: 34px;
+  border-radius: 16px;
+}
+.preference-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.preference-heading strong {
+  font-size: 20px;
+}
+.preference-description {
+  max-width: 800px;
+  margin: 0;
+  color: #64748b;
+  line-height: 1.7;
+}
+.slider-area {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  max-width: 760px;
+  margin-top: 24px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 700;
+}
+.preference-example {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.preference-example strong {
+  color: #d97706;
 }
 
 .guide-section {
@@ -235,13 +328,14 @@ const conditionFactors = [
   .guide-header h1 {
     font-size: 30px;
   }
-  .score-grid,
-  .factor-grid {
-    grid-template-columns: 1fr;
-  }
+  .preference-heading,
   .score-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .score-grid,
+  .factor-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
