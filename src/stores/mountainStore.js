@@ -2,6 +2,33 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { getMountainErrorMessage, searchMountains } from '@/services/mountainApi'
 
+function normalizeMountainName(value) {
+  return value.replace(/\s+/g, '').toLowerCase()
+}
+
+function getMountainSearchPriority(mountainName, keyword) {
+  const normalizedName = normalizeMountainName(mountainName)
+  const normalizedKeyword = normalizeMountainName(keyword)
+
+  if (normalizedName === normalizedKeyword) return 0
+  if (normalizedName.startsWith(normalizedKeyword)) return 1
+  if (normalizedName.includes(normalizedKeyword)) return 2
+  return 3
+}
+
+function sortMountainResults(mountains, keyword) {
+  return [...mountains].sort((first, second) => {
+    const firstPriority = getMountainSearchPriority(first.name, keyword)
+    const secondPriority = getMountainSearchPriority(second.name, keyword)
+
+    if (firstPriority !== secondPriority) {
+      return firstPriority - secondPriority
+    }
+
+    return first.name.localeCompare(second.name, 'ko')
+  })
+}
+
 export const useMountainStore = defineStore('mountain', () => {
   const mountains = ref([])
   const searchKeyword = ref('')
@@ -13,6 +40,16 @@ export const useMountainStore = defineStore('mountain', () => {
 
   const resultCount = computed(() => mountains.value.length)
   const hasResults = computed(() => resultCount.value > 0)
+
+  const exactMatch = computed(() => {
+    const normalizedKeyword = normalizeMountainName(lastSearchedKeyword.value)
+
+    return (
+      mountains.value.find(
+        (mountain) => normalizeMountainName(mountain.name) === normalizedKeyword,
+      ) || null
+    )
+  })
 
   async function search(keyword) {
     const normalizedKeyword = keyword.trim()
@@ -28,17 +65,18 @@ export const useMountainStore = defineStore('mountain', () => {
 
     try {
       const result = await searchMountains(normalizedKeyword)
+      const sortedMountains = sortMountainResults(result.mountains, normalizedKeyword)
 
-      mountains.value = result.mountains
+      mountains.value = sortedMountains
       searchKeyword.value = normalizedKeyword
       lastSearchedKeyword.value = normalizedKeyword
       lastSearchedAt.value = new Date()
 
-      if (result.mountains.length === 0) {
+      if (sortedMountains.length === 0) {
         errorMessage.value = `'${normalizedKeyword}'에 해당하는 산 정보를 찾지 못했습니다.`
       }
 
-      return result.mountains
+      return sortedMountains
     } catch (error) {
       console.error('[Mountain Store] 산 검색 실패:', error)
 
@@ -65,7 +103,6 @@ export const useMountainStore = defineStore('mountain', () => {
     }
 
     const results = await search(normalizedName)
-
     const exactMountain = results.find((mountain) => mountain.name === normalizedName)
 
     selectedMountain.value = exactMountain || results[0] || null
@@ -95,6 +132,7 @@ export const useMountainStore = defineStore('mountain', () => {
     lastSearchedAt,
     resultCount,
     hasResults,
+    exactMatch,
     search,
     selectMountain,
     getMountainByName,

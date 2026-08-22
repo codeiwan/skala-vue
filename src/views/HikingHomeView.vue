@@ -7,8 +7,15 @@ const router = useRouter()
 const mountainStore = useMountainStore()
 const keyword = ref(mountainStore.searchKeyword || '북한산')
 
+const quickSearches = ['북한산', '설악산', '한라산', '지리산', '무등산']
+
 const handleSearch = async () => {
   await mountainStore.search(keyword.value)
+}
+
+const handleQuickSearch = async (mountainName) => {
+  keyword.value = mountainName
+  await mountainStore.search(mountainName)
 }
 
 const handleDetail = (mountain) => {
@@ -21,6 +28,10 @@ const handleDetail = (mountain) => {
     },
   })
 }
+
+const isExactMatch = (mountain) => {
+  return mountainStore.exactMatch?.id === mountain.id
+}
 </script>
 
 <template>
@@ -30,7 +41,8 @@ const handleDetail = (mountain) => {
         <p class="eyebrow">HIKING SIGNAL</p>
         <h1>오늘은 어느 산으로 가볼까요?</h1>
         <p class="hero-description">
-          산림청 공공데이터에서 산 정보를 검색하고, 산행에 필요한 기본 정보를 확인합니다.
+          산림청 공공데이터에서 산 정보를 검색하고, 산행에 필요한 기본 정보와 현재 환경을
+          확인합니다.
         </p>
       </header>
 
@@ -43,6 +55,7 @@ const handleDetail = (mountain) => {
             placeholder="산 이름을 입력하세요. 예: 북한산"
             @keyup.enter="handleSearch"
           />
+
           <el-button
             type="primary"
             size="large"
@@ -53,9 +66,25 @@ const handleDetail = (mountain) => {
           </el-button>
         </div>
 
-        <div class="search-guide">
-          <span>산림청 산 정보 조회_GW</span>
-          <el-tag type="success" effect="plain" size="small">공공데이터</el-tag>
+        <div class="search-footer">
+          <div class="data-source">
+            <span>산림청 산 정보 조회_GW</span>
+            <el-tag type="success" effect="plain" size="small">공공데이터</el-tag>
+          </div>
+
+          <div class="quick-search">
+            <span>빠른 검색</span>
+
+            <el-button
+              v-for="mountainName in quickSearches"
+              :key="mountainName"
+              size="small"
+              text
+              @click="handleQuickSearch(mountainName)"
+            >
+              {{ mountainName }}
+            </el-button>
+          </div>
         </div>
       </el-card>
 
@@ -70,7 +99,7 @@ const handleDetail = (mountain) => {
 
       <el-alert
         v-else-if="mountainStore.hasResults"
-        :title="`${mountainStore.resultCount}개의 산 정보를 찾았습니다.`"
+        :title="`'${mountainStore.lastSearchedKeyword}' 검색 결과 · ${mountainStore.resultCount}개`"
         type="success"
         :closable="false"
         show-icon
@@ -87,7 +116,14 @@ const handleDetail = (mountain) => {
           >
             <div class="card-header">
               <div>
-                <span class="mountain-id">{{ mountain.id }}</span>
+                <div class="mountain-meta">
+                  <span class="mountain-id">{{ mountain.id }}</span>
+
+                  <el-tag v-if="isExactMatch(mountain)" type="primary" size="small" effect="plain">
+                    정확히 일치
+                  </el-tag>
+                </div>
+
                 <h2>{{ mountain.name }}</h2>
               </div>
 
@@ -160,6 +196,7 @@ const handleDetail = (mountain) => {
   color: #64748b;
   line-height: 1.7;
 }
+
 .search-card {
   border-radius: 16px;
 }
@@ -168,14 +205,30 @@ const handleDetail = (mountain) => {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
 }
-.search-guide {
+.search-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 14px;
+}
+.data-source,
+.quick-search,
+.mountain-meta {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 14px;
+}
+.data-source,
+.quick-search {
   color: #94a3b8;
   font-size: 13px;
 }
+.quick-search {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .status-alert {
   margin-top: 18px;
 }
@@ -191,6 +244,7 @@ const handleDetail = (mountain) => {
 .mountain-card {
   border-radius: 16px;
 }
+
 .card-header {
   display: flex;
   align-items: flex-start;
@@ -203,7 +257,7 @@ const handleDetail = (mountain) => {
   font-weight: 700;
 }
 .card-header h2 {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   font-size: 26px;
 }
 .subtitle {
@@ -211,6 +265,7 @@ const handleDetail = (mountain) => {
   color: #64748b;
   font-size: 15px;
 }
+
 .location,
 .summary {
   padding-top: 16px;
@@ -238,10 +293,21 @@ const handleDetail = (mountain) => {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
+
 .card-footer {
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
+}
+
+@media (max-width: 800px) {
+  .search-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .quick-search {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 600px) {
@@ -251,9 +317,7 @@ const handleDetail = (mountain) => {
   .hero h1 {
     font-size: 30px;
   }
-  .search-area {
-    grid-template-columns: 1fr;
-  }
+  .search-area,
   .mountain-grid {
     grid-template-columns: 1fr;
   }

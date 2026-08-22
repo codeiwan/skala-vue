@@ -23,15 +23,26 @@ function decodeHtmlText(value) {
   const textarea = document.createElement('textarea')
   textarea.innerHTML = value
 
-  const decoded = textarea.value
-    .replace(/<BR\s*\/?>/gi, '\n')
-    .replace(/\u00A0/g, ' ')
+  return textarea.value
     .replace(/&nbsp;/gi, ' ')
-    .replace(/\s+\n/g, '\n')
+    .replace(/\u00A0/g, ' ')
+    .replace(/<BR\s*\/?>/gi, '\n')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n[ \t]+/g, '\n')
+    .replace(/[ \t]{2,}/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+}
 
-  return decoded
+function normalizeUrl(value) {
+  const url = value.trim()
+
+  if (!url) return ''
+  if (url.toLowerCase().endsWith('.swf')) return ''
+
+  return url
 }
 
 function parseMountainItem(item) {
@@ -39,16 +50,16 @@ function parseMountainItem(item) {
     id: getXmlText(item, 'mntnid'),
     name: getXmlText(item, 'mntnnm'),
     height: Number(getXmlText(item, 'mntninfohght')) || null,
-    location: getXmlText(item, 'mntninfopoflc'),
-    subtitle: getXmlText(item, 'mntnsbttlinfo'),
+    location: decodeHtmlText(getXmlText(item, 'mntninfopoflc')),
+    subtitle: decodeHtmlText(getXmlText(item, 'mntnsbttlinfo')),
     description: decodeHtmlText(getXmlText(item, 'mntninfodscrt')),
     detail: decodeHtmlText(getXmlText(item, 'mntninfodtlinfocont')),
     hikingPoint: decodeHtmlText(getXmlText(item, 'hkngpntdscrt')),
     selectionReason: decodeHtmlText(getXmlText(item, 'hndfmsmtnslctnrson')),
     courses: decodeHtmlText(getXmlText(item, 'crcmrsghtnginfoetcdscrt')),
     transportation: decodeHtmlText(getXmlText(item, 'pbtrninfodscrt')),
-    imageUrl: getXmlText(item, 'mntnattchimageseq'),
-    mapImageUrl: getXmlText(item, 'hndfmsmtnmapimageseq'),
+    imageUrl: normalizeUrl(getXmlText(item, 'mntnattchimageseq')),
+    mapImageUrl: normalizeUrl(getXmlText(item, 'hndfmsmtnmapimageseq')),
   }
 }
 
@@ -63,6 +74,7 @@ function parseMountainResponse(xmlString) {
 
   const resultCode =
     getXmlText(xmlDocument, 'resultCode') || getXmlText(xmlDocument, 'returnReasonCode')
+
   const resultMessage = getXmlText(xmlDocument, 'resultMsg') || getXmlText(xmlDocument, 'errMsg')
 
   if (resultCode && resultCode !== '00') {
@@ -110,7 +122,7 @@ export function getMountainErrorMessage(error) {
     }
 
     if (error.request) {
-      return '산림청 API에서 응답을 받지 못했습니다. 브라우저 CORS 정책도 확인하세요.'
+      return '산림청 API에서 응답을 받지 못했습니다. 네트워크 상태를 확인하세요.'
     }
   }
 
